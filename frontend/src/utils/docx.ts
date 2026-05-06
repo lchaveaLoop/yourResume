@@ -79,10 +79,14 @@ function isSectionHeader(line: string): Section | null {
 
 /** 提取行首的时间范围，返回 { duration, rest } */
 function extractDuration(line: string): { duration: string; rest: string } {
-  // 优先匹配：YYYY.MM-至今
-  const m1 = line.match(/^(\d{4}\.\d(?:\.\d)?)\s*-\s*(\u81f3\u4eca)(.*)/)
-  if (m1) return { duration: `${m1[1]}-至今`, rest: (m1[3] || '').trim() }
-  // 标准区间：YYYY.MM-YYYY.MM
+  // 优先匹配：YYYY.MM-至今（用 indexOf 避免 regex unicode 问题）
+  const endIdx = line.indexOf('至今')
+  if (endIdx !== -1 && endIdx < 12) {
+    const duration = line.substring(0, endIdx + 2)
+    const rest = line.substring(endIdx + 2).trim()
+    return { duration, rest }
+  }
+  // 标准区间：YYYY.MM-YYYY.MM 或 YYYY.M.MM-YYYY.M.MM
   const m2 = line.match(/^(\d{4}\.\d(?:\.\d)?)\s*-\s*(\d{4}\.\d(?:\.\d)?)(.*)/)
   if (m2) return { duration: `${m2[1]}-${m2[2]}`, rest: (m2[3] || '').trim() }
   return { duration: '', rest: line }
@@ -148,7 +152,10 @@ function parseLines(lines: string[]): ResumeData {
       if (em && !data.email) data.email = em[0]
       const ph = raw.match(/\d{11}/)
       if (ph && !data.phone) data.phone = ph[0]
-      if (raw.length > 20 && !data.summary) data.summary = raw
+      // 只把纯短文本（<15字，无日期，无分隔符）作为 summary
+      if (raw.length < 15 && !/\d{4}/.test(raw) && !raw.includes('|') && !data.summary) {
+        data.summary = raw
+      }
     }
 
     // ===== 教育经历 =====
@@ -182,30 +189,36 @@ function parseLines(lines: string[]): ResumeData {
 
     // ===== 工作经历 =====
     if (section === 'experience') {
+      // 跳过标记：遇到 duration 行后，下一行作为 title 但跳过，下下行继续
       if (skipNext) { skipNext = false; continue }
 
       const { duration, rest } = extractDuration(raw)
       if (duration) {
         flushExp()
         currentExp.duration = duration
-        // rest 是公司名，可能带职位
+        // rest 可能是"公司名" 或 "公司名|职位"
         if (rest.includes('|')) {
           const parts = rest.split('|')
           currentExp.company = parts[0].trim()
           currentExp.title = parts.slice(1).join('|').trim()
-        } else {
-          currentExp.company = rest
-          // 尝试从下一行取职位
+        } else if (rest.trim()) {
+          currentExp.company = rest.trim()
+          // 尝试从下一行取职位（下一行没有 duration 且不是列表项才取）
           const next = lines[i + 1]
           if (next && !isSectionHeader(next) && !extractDuration(next).duration && !/^\d+\./.test(next)) {
-            currentExp.title = next.replace(/^[｜|]\s*/, '').trim()
-            skipNext = true
+            if (next.includes('|')) {
+              const tParts = next.split('|')
+              currentExp.title = tParts[0].trim()
+            } else {
+              currentExp.title = next.trim()
+            }
+            skipNext = true // 下下行不要当 title 再处理
           }
         }
         continue
       }
 
-      // 没有 duration 的公司/职位行
+      // 没有 duration 的行
       if (!currentExp.company && !currentExp.title) {
         if (raw.includes('|')) {
           const parts = raw.split('|')
@@ -217,16 +230,14 @@ function parseLines(lines: string[]): ResumeData {
         continue
       }
 
-      // 编号列表项
+      // 编号列表项 → 工作内容
       if (/^\d+\./.test(raw)) {
         pendingExpDetails.push(raw.replace(/^\d+\./, '').trim())
         continue
       }
 
-      // 其他工作内容
-      if (currentExp.company || currentExp.title) {
-        pendingExpDetails.push(raw)
-      }
+      // 其他内容 → 工作内容
+      pendingExpDetails.push(raw)
     }
 
     // ===== 项目经历 =====

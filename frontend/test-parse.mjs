@@ -43,10 +43,12 @@ async function main() {
   }
 
   function extractDuration(line) {
-    const m1 = line.match(/^(\d{4}\.\d(?:\.\d)?)\s*-\s*(\u81f3)(.*)/);
-    if (m1) return { duration: `${m1[1]}-${m1[2]}`, rest: m1[3].trim() };
+    const endIdx = line.indexOf('至今');
+    if (endIdx !== -1 && endIdx < 12) {
+      return { duration: line.substring(0, endIdx + 2), rest: line.substring(endIdx + 2).trim() };
+    }
     const m2 = line.match(/^(\d{4}\.\d(?:\.\d)?)\s*-\s*(\d{4}\.\d(?:\.\d)?)(.*)/);
-    if (m2) return { duration: `${m2[1]}-${m2[2]}`, rest: m2[3].trim() };
+    if (m2) return { duration: `${m2[1]}-${m2[2]}`, rest: (m2[3] || '').trim() };
     return { duration:'', rest: line };
   }
 
