@@ -3,13 +3,18 @@
     <!-- Classic 模板 -->
     <div v-if="template === 'classic'" class="template-classic">
       <header class="resume-header">
-        <h1 class="name">{{ resume.name || '姓名' }}</h1>
-        <div class="contact-line" v-if="hasContact">
-          <span v-if="resume.email">📧 {{ resume.email }}</span>
-          <span v-if="resume.phone">📱 {{ resume.phone }}</span>
-          <span v-if="resume.location">📍 {{ resume.location }}</span>
+        <div class="header-content">
+          <div class="header-text">
+            <h1 class="name">{{ resume.name || '姓名' }}</h1>
+            <div class="contact-line" v-if="hasContact">
+              <span v-if="resume.email">📧 {{ resume.email }}</span>
+              <span v-if="resume.phone">📱 {{ resume.phone }}</span>
+              <span v-if="resume.location">📍 {{ resume.location }}</span>
+            </div>
+            <p class="summary" v-if="resume.summary">{{ resume.summary }}</p>
+          </div>
+          <img v-if="resume.photo" :src="resume.photo" class="avatar" alt="照片" />
         </div>
-        <p class="summary" v-if="resume.summary">{{ resume.summary }}</p>
       </header>
 
       <section class="section" v-if="resume.education.length">
@@ -61,14 +66,17 @@
     <div v-else-if="template === 'modern'" class="template-modern">
       <header class="modern-header">
         <div class="modern-name-row">
-          <h1 class="modern-name">{{ resume.name || '姓名' }}</h1>
+          <div>
+            <h1 class="modern-name">{{ resume.name || '姓名' }}</h1>
+            <div class="modern-contact" v-if="hasContact">
+              <span v-if="resume.email">{{ resume.email }}</span>
+              <span v-if="resume.phone">{{ resume.phone }}</span>
+              <span v-if="resume.location">{{ resume.location }}</span>
+            </div>
+            <p class="modern-summary" v-if="resume.summary">{{ resume.summary }}</p>
+          </div>
+          <img v-if="resume.photo" :src="resume.photo" class="modern-avatar" alt="照片" />
         </div>
-        <div class="modern-contact" v-if="hasContact">
-          <span v-if="resume.email">{{ resume.email }}</span>
-          <span v-if="resume.phone">{{ resume.phone }}</span>
-          <span v-if="resume.location">{{ resume.location }}</span>
-        </div>
-        <p class="modern-summary" v-if="resume.summary">{{ resume.summary }}</p>
       </header>
 
       <div class="modern-body">
@@ -120,11 +128,16 @@
     <!-- Minimal 模板 -->
     <div v-else class="template-minimal">
       <header class="min-header">
-        <h1 class="min-name">{{ resume.name || '姓名' }}</h1>
-        <div class="min-contact" v-if="hasContact">
-          <span v-if="resume.email">{{ resume.email }}</span>
-          <span v-if="resume.phone">{{ resume.phone }}</span>
-          <span v-if="resume.location">{{ resume.location }}</span>
+        <div class="min-header-content">
+          <div>
+            <h1 class="min-name">{{ resume.name || '姓名' }}</h1>
+            <div class="min-contact" v-if="hasContact">
+              <span v-if="resume.email">{{ resume.email }}</span>
+              <span v-if="resume.phone">{{ resume.phone }}</span>
+              <span v-if="resume.location">{{ resume.location }}</span>
+            </div>
+          </div>
+          <img v-if="resume.photo" :src="resume.photo" class="min-avatar" alt="照片" />
         </div>
       </header>
       <p class="min-summary" v-if="resume.summary">{{ resume.summary }}</p>
@@ -196,6 +209,26 @@ const hasContact = computed(() =>
 .resume-header {
   border-bottom: 2px solid #1a1a2e;
   padding-bottom: 12px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.avatar {
+  width: 90px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .name {
@@ -295,6 +328,22 @@ const hasContact = computed(() =>
   color: #fff;
   padding: 20px;
   border-radius: 4px 4px 0 0;
+}
+
+.modern-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.modern-avatar {
+  width: 80px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 2px solid #fff;
+  flex-shrink: 0;
 }
 
 .modern-name {
@@ -418,9 +467,23 @@ const hasContact = computed(() =>
 }
 
 .min-header {
+  margin-bottom: 8px;
+}
+
+.min-header-content {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.min-avatar {
+  width: 70px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .min-name {

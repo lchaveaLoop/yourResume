@@ -39,6 +39,13 @@
                 @input="update('summary', ($event.target as HTMLTextAreaElement).value)"
                 placeholder="个人简介，一句话描述自己" rows="3" />
 
+              <h4>照片</h4>
+              <div class="photo-upload">
+                <img v-if="store.data.photo" :src="store.data.photo" class="photo-preview" alt="照片" />
+                <input type="file" accept="image/*" @change="handlePhotoUpload" class="photo-input" />
+                <button v-if="store.data.photo" class="btn-remove-photo" @click="store.data.photo = undefined">删除照片</button>
+              </div>
+
               <h4>教育经历 <button class="btn-add" @click="addEducation">+ 添加</button></h4>
               <div v-for="(e, i) in store.data.education" :key="i" class="block-card">
                 <input class="field-input" v-model="e.school" placeholder="学校" />
@@ -125,6 +132,17 @@ async function handleFileSelected(content: string | File, fname: string) {
 
 function update<K extends keyof ResumeData>(key: K, value: string) {
   ;(store.data as any)[key] = value
+}
+
+function handlePhotoUpload(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    store.data.photo = reader.result as string
+  }
+  reader.readAsDataURL(file)
 }
 
 function getPreviewEl() {
@@ -424,5 +442,34 @@ function addProject() {
   cursor: pointer;
   font-size: 14px;
   padding: 0 4px;
+}
+
+.photo-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.photo-preview {
+  width: 100px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.photo-input {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.btn-remove-photo {
+  font-size: 11px;
+  color: #ef4444;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
 }
 </style>

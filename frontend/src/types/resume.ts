@@ -27,6 +27,7 @@ export interface ResumeData {
   phone: string
   location: string
   summary: string
+  photo?: string  // base64 data URL
   education: Education[]
   experience: Experience[]
   skills: string[]
@@ -39,6 +40,7 @@ export const defaultResume: ResumeData = {
   phone: '',
   location: '',
   summary: '',
+  photo: undefined,
   education: [],
   experience: [],
   skills: [],

@@ -10,6 +10,39 @@ export async function parseDocx(file: File): Promise<ResumeData> {
   const xml = await zip.file('word/document.xml')?.async('string')
   if (!xml) throw new Error('无法读取 docx 文档内容')
 
+  // 提取照片（尝试获取 word/media/ 下的第一张小图，超时 2s 跳过）
+  let photo: string | undefined
+  const mediaFolder = zip.folder('word/media')
+  if (mediaFolder) {
+    const files = mediaFolder.files
+    const imageNames = Object.keys(files)
+      .filter(n => /\.(png|jpg|jpeg)$/i.test(n))
+      .sort() // image1.png 优先
+    
+    for (const name of imageNames) {
+      try {
+        const file = files[name]
+        if (!file || file.dir) continue
+        
+        // 超时 2s，防止过大图片卡死
+        const blob = await Promise.race([
+          file.async('base64'),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('timeout')), 2000)
+          )
+        ])
+        
+        const ext = name.split('.').pop()?.toLowerCase()
+        const mime = ext === 'png' ? 'image/png' : 'image/jpeg'
+        photo = `data:${mime};base64,${blob}`
+        break // 只取第一张成功的
+      } catch {
+        // 超时或错误，尝试下一张
+        continue
+      }
+    }
+  }
+
   // 提取所有段落文本
   const paras = xml.split(/<\/w:p>/)
   const lines: string[] = []
@@ -19,7 +52,9 @@ export async function parseDocx(file: File): Promise<ResumeData> {
     if (line.trim()) lines.push(line.trim())
   }
 
-  return parseLines(lines)
+  const data = parseLines(lines)
+  if (photo) data.photo = photo
+  return data
 }
 
 type Section = 'base' | 'education' | 'experience' | 'projects'
