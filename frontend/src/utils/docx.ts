@@ -10,34 +10,29 @@ export async function parseDocx(file: File): Promise<ResumeData> {
   const xml = await zip.file('word/document.xml')?.async('string')
   if (!xml) throw new Error('无法读取 docx 文档内容')
 
-  // 提取照片（尝试获取 word/media/ 下的第一张小图，超时 2s 跳过）
+  // 提取照片
   let photo: string | undefined
   const mediaFolder = zip.folder('word/media')
   if (mediaFolder) {
     const files = mediaFolder.files
     const imageNames = Object.keys(files)
       .filter(n => /\.(png|jpg|jpeg)$/i.test(n))
-      .sort() // image1.png 优先
-    
+      .sort()
     for (const name of imageNames) {
       try {
         const file = files[name]
         if (!file || file.dir) continue
-        
-        // 超时 2s，防止过大图片卡死
         const blob = await Promise.race([
           file.async('base64'),
-          new Promise<never>((_, reject) => 
+          new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error('timeout')), 2000)
           )
         ])
-        
         const ext = name.split('.').pop()?.toLowerCase()
         const mime = ext === 'png' ? 'image/png' : 'image/jpeg'
         photo = `data:${mime};base64,${blob}`
-        break // 只取第一张成功的
+        break
       } catch {
-        // 超时或错误，尝试下一张
         continue
       }
     }
@@ -70,24 +65,32 @@ const SECTION_KEYWORDS: Record<string, Section> = {
 /** 判断行是否为章节标题 */
 function isSectionHeader(line: string): Section | null {
   if (line in SECTION_KEYWORDS) return SECTION_KEYWORDS[line]
+  // 排除列表项（如 "- 工作内容:" 或 "• 技能:"）
+  if (line.match(/^[\-•·]\s/) || line.match(/^[a-zA-Z0-9]{1,3}[.)]\s/)) return null
   if (line.length > 20) return null
+  // 正文内容关键词，不应误判为章节标题
+  if (/问题|文档|标准化|方案|描述|分析|设计|实现|测试|流程|规范/.test(line)) return null
   for (const [kw, sec] of Object.entries(SECTION_KEYWORDS)) {
     if (line.includes(kw)) return sec
   }
   return null
 }
 
-/** 提取行首的时间范围，返回 { duration, rest } */
+/** 判断行是否像职位（用于识别 title 行） */
+function isLikelyTitle(line: string): boolean {
+  // 有职位关键词或薪资关键词
+  if (/工程师|开发|实习|架构|技术|研究员|总监|经理|主管|专家/.test(line)) return true
+  if (/K\s*\d|\d+K|\d+薪/.test(line)) return true
+  return false
+}
+
+/** 提取行首的时间范围 */
 function extractDuration(line: string): { duration: string; rest: string } {
-  // 优先匹配：YYYY.MM-至今（用 indexOf 避免 regex unicode 问题）
   const endIdx = line.indexOf('至今')
   if (endIdx !== -1 && endIdx < 12) {
-    const duration = line.substring(0, endIdx + 2)
-    const rest = line.substring(endIdx + 2).trim()
-    return { duration, rest }
+    return { duration: line.substring(0, endIdx + 2), rest: line.substring(endIdx + 2).trim() }
   }
-  // 标准区间：YYYY.MM-YYYY.MM 或 YYYY.M.MM-YYYY.M.MM
-  const m2 = line.match(/^(\d{4}\.\d(?:\.\d)?)\s*-\s*(\d{4}\.\d(?:\.\d)?)(.*)/)
+  const m2 = line.match(/^(\d{4}\.\d{1,2})\s*[-–−—]\s*(\d{4}\.\d{1,2})(.*)/)
   if (m2) return { duration: `${m2[1]}-${m2[2]}`, rest: (m2[3] || '').trim() }
   return { duration: '', rest: line }
 }
@@ -135,7 +138,6 @@ function parseLines(lines: string[]): ResumeData {
     const raw = lines[i]
     if (!raw.trim()) continue
 
-    // 章节标题检测
     const hdr = isSectionHeader(raw)
     if (hdr) {
       if (section === 'education') flushEdu()
@@ -148,14 +150,23 @@ function parseLines(lines: string[]): ResumeData {
     // ===== base 区块 =====
     if (section === 'base') {
       if (!data.name) { data.name = raw; continue }
+      // 跳过元数据行
+      if (/^(性别|年龄|生日|籍贯|民族|政治|身高|体重)/.test(raw)) continue
       const em = raw.match(/[\w.-]+@[\w.-]+\.\w+/)
       if (em && !data.email) data.email = em[0]
       const ph = raw.match(/\d{11}/)
       if (ph && !data.phone) data.phone = ph[0]
-      // 只把纯短文本（<15字，无日期，无分隔符）作为 summary
-      if (raw.length < 15 && !/\d{4}/.test(raw) && !raw.includes('|') && !data.summary) {
+      // 提取城市
+      if (!data.location) {
+        const locM = raw.match(/武汉|北京|上海|深圳|广州|杭州|成都|南京|苏州|西安|长沙/)
+        if (locM) data.location = locM[0]
+      }
+      // summary: 纯短文本（不含元数据标记、电话号码特征）
+      if (raw.length < 15 && !/\d{4}/.test(raw) && !raw.includes('|') && !data.summary
+          && !/^(\d|电话|邮箱|性别|年龄)/.test(raw)) {
         data.summary = raw
       }
+      continue
     }
 
     // ===== 教育经历 =====
@@ -173,9 +184,7 @@ function parseLines(lines: string[]): ResumeData {
         }
         continue
       }
-      // 没有 duration 的行，可能是学历行
       if (raw.includes('|') || /大专|本科|硕士|博士/.test(raw)) {
-        // 如果已经有 school，补充 degree；否则整个作为 school
         if (currentEdu.school) currentEdu.degree = raw.replace(/\s+/g, ' ')
         else currentEdu.school = raw
         continue
@@ -185,34 +194,39 @@ function parseLines(lines: string[]): ResumeData {
       } else if (currentEdu.school) {
         currentEdu.details = currentEdu.details ? currentEdu.details + '；' + raw : raw
       }
+      continue
     }
 
     // ===== 工作经历 =====
     if (section === 'experience') {
-      // 跳过标记：遇到 duration 行后，下一行作为 title 但跳过，下下行继续
       if (skipNext) { skipNext = false; continue }
 
       const { duration, rest } = extractDuration(raw)
       if (duration) {
+        // 新工作条目开始，先 flush 旧的
         flushExp()
         currentExp.duration = duration
-        // rest 可能是"公司名" 或 "公司名|职位"
         if (rest.includes('|')) {
+          // "东风公司 | c++开发工程师" 格式
           const parts = rest.split('|')
           currentExp.company = parts[0].trim()
           currentExp.title = parts.slice(1).join('|').trim()
         } else if (rest.trim()) {
           currentExp.company = rest.trim()
-          // 尝试从下一行取职位（下一行没有 duration 且不是列表项才取）
+          // 下一行可能是 title+薪资 或者 公司补充
           const next = lines[i + 1]
           if (next && !isSectionHeader(next) && !extractDuration(next).duration && !/^\d+\./.test(next)) {
             if (next.includes('|')) {
               const tParts = next.split('|')
               currentExp.title = tParts[0].trim()
-            } else {
+            } else if (isLikelyTitle(next)) {
+              // 没有 pipe，但看起来像职位
               currentExp.title = next.trim()
+            } else {
+              // 可能是公司补充行，加到公司名
+              currentExp.company = currentExp.company + ' ' + next.trim()
             }
-            skipNext = true // 下下行不要当 title 再处理
+            skipNext = true
           }
         }
         continue
@@ -224,13 +238,15 @@ function parseLines(lines: string[]): ResumeData {
           const parts = raw.split('|')
           currentExp.company = parts[0].trim()
           currentExp.title = parts.slice(1).join('|').trim()
+        } else if (isLikelyTitle(raw)) {
+          currentExp.title = raw.trim()
         } else {
-          currentExp.company = raw
+          currentExp.company = raw.trim()
         }
         continue
       }
 
-      // 编号列表项 → 工作内容
+      // 编号列表项
       if (/^\d+\./.test(raw)) {
         pendingExpDetails.push(raw.replace(/^\d+\./, '').trim())
         continue
@@ -238,6 +254,7 @@ function parseLines(lines: string[]): ResumeData {
 
       // 其他内容 → 工作内容
       pendingExpDetails.push(raw)
+      continue
     }
 
     // ===== 项目经历 =====
@@ -248,15 +265,20 @@ function parseLines(lines: string[]): ResumeData {
       if (duration) {
         flushProj()
         currentProj.duration = duration
-        // rest: 项目名 [角色]
+        // 格式: "项目名 | 公司 | 时间" 或 "项目名 | 时间 公司"
         if (rest.includes('|')) {
-          const parts = rest.split('|')
-          currentProj.name = parts[0].trim()
-          currentProj.role = parts.slice(1).join('|').trim()
+          const parts = rest.split('|').map(p => p.trim()).filter(Boolean)
+          currentProj.name = parts[0] || ''
+          // 找到不含日期的部分作为公司/角色
+          for (let j = 1; j < parts.length; j++) {
+            if (!/\d{4}/.test(parts[j]) && parts[j].length > 1) {
+              currentProj.role = parts[j]
+              break
+            }
+          }
         } else {
           currentProj.name = rest
         }
-        // 下一行可能是角色
         const next = lines[i + 1]
         if (next && !isSectionHeader(next) && !extractDuration(next).duration) {
           if (/主要开发人员|主要负责人|独立开发|参与/.test(next)) {
@@ -267,13 +289,20 @@ function parseLines(lines: string[]): ResumeData {
         continue
       }
 
-      // 日期后面的行：可能是项目名、角色、或内容
+      // 中段日期匹配: "项目名 2020.01-2021.12 公司"
+      const midDur = raw.match(/(\d{4}\.\d{1,2}[-–−—]\d{4}\.\d{1,2})/)
+      if (midDur && midDur.index !== undefined && midDur.index > 0) {
+        flushProj()
+        currentProj.name = raw.substring(0, midDur.index).trim()
+        currentProj.duration = midDur[1]
+        const after = raw.substring(midDur.index + midDur[1].length).trim()
+        if (after) currentProj.role = after
+        continue
+      }
+
       if (!currentProj.name) {
-        if (/主要开发人员|主要负责人|独立开发|参与/.test(raw)) {
-          currentProj.role = raw
-        } else {
-          currentProj.name = raw
-        }
+        if (/主要开发人员|主要负责人|独立开发|参与/.test(raw)) currentProj.role = raw
+        else currentProj.name = raw
         continue
       }
 
@@ -282,16 +311,12 @@ function parseLines(lines: string[]): ResumeData {
         continue
       }
 
-      // 技术栈/平台行（冒号格式）
       if (/^[\u4e00-\u9fa5]{2,6}：/.test(raw) || /^开发/.test(raw)) {
         pendingProjDetails.push(raw)
         continue
       }
 
-      // 工作内容 / 问题描述
-      if (currentProj.name) {
-        pendingProjDetails.push(raw)
-      }
+      if (currentProj.name) pendingProjDetails.push(raw)
     }
   }
 

@@ -5,7 +5,7 @@ import { defaultResume } from '../types/resume'
 
 export const useResumeStore = defineStore('resume', () => {
   const data = ref<ResumeData>({ ...defaultResume })
-  const template = ref<'classic' | 'modern' | 'minimal'>('classic')
+  const template = ref<'classic' | 'modern' | 'minimal' | 'compact' | 'timeline' | 'bold'>('classic')
 
   function setResume(resume: ResumeData) {
     data.value = resume
@@ -15,7 +15,7 @@ export const useResumeStore = defineStore('resume', () => {
     data.value[key] = value
   }
 
-  function setTemplate(t: 'classic' | 'modern' | 'minimal') {
+  function setTemplate(t: 'classic' | 'modern' | 'minimal' | 'compact' | 'timeline' | 'bold') {
     template.value = t
   }
 
