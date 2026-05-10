@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #1a1a2e;
+  --color-accent: #4a6cf5;
+  --color-bg: #ffffff;
+  --color-surface: #f8f9fa;
+  --color-border: #e2e8f0;
+  --color-text: #1a1a2e;
+  --color-text-muted: #64748b;
+  --resume-width: 210mm;
+  --resume-height: 297mm;
+  --resume-padding: 20mm;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
