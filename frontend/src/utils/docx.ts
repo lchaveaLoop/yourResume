@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
 import type { ResumeData } from '../types/resume'
+import { extractTargetRoleFromLine, isTargetRoleLabel } from './career'
 
 /**
  * 解析 .docx 文件，返回结构化简历数据
@@ -98,6 +99,7 @@ function extractDuration(line: string): { duration: string; rest: string } {
 function parseLines(lines: string[]): ResumeData {
   const data: ResumeData = {
     name: '', email: '', phone: '', location: '', summary: '',
+    targetRole: '',
     education: [], experience: [], skills: [], projects: [],
   }
 
@@ -108,6 +110,7 @@ function parseLines(lines: string[]): ResumeData {
   let pendingExpDetails: string[] = []
   let pendingProjDetails: string[] = []
   let skipNext = false
+  let expectTargetRole = false
 
   function flushEdu() {
     if (currentEdu.school || currentEdu.degree) data.education.push({ ...currentEdu })
@@ -137,6 +140,27 @@ function parseLines(lines: string[]): ResumeData {
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i]
     if (!raw.trim()) continue
+
+    if (expectTargetRole) {
+      if (isSectionHeader(raw)) {
+        expectTargetRole = false
+      } else {
+      data.targetRole = raw.replace(/^[-*•·]\s*/, '').trim()
+      expectTargetRole = false
+      continue
+      }
+    }
+
+    const targetRole = extractTargetRoleFromLine(raw)
+    if (targetRole && !data.targetRole) {
+      data.targetRole = targetRole
+      continue
+    }
+
+    if (isTargetRoleLabel(raw)) {
+      expectTargetRole = true
+      continue
+    }
 
     const hdr = isSectionHeader(raw)
     if (hdr) {

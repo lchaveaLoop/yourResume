@@ -11,16 +11,14 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ modelValue: 'classic' | 'modern' | 'minimal' | 'compact' | 'timeline' | 'bold' }>()
-const emit = defineEmits<{ (e: 'update:modelValue', v: 'classic' | 'modern' | 'minimal' | 'compact' | 'timeline' | 'bold'): void }>()
+import type { CareerTemplate } from '../types/resume'
+
+defineProps<{ modelValue: CareerTemplate }>()
+const emit = defineEmits<{ (e: 'update:modelValue', v: CareerTemplate): void }>()
 
 const templates = [
-  { value: 'classic' as const, label: '经典' },
-  { value: 'modern' as const, label: '现代' },
-  { value: 'minimal' as const, label: '简约' },
-  { value: 'compact' as const, label: '密集' },
-  { value: 'timeline' as const, label: '时间轴' },
-  { value: 'bold' as const, label: '杂志' },
+  { value: 'it' as const, label: 'IT 技术' },
+  { value: 'marketing' as const, label: '市场商务' },
 ]
 </script>
 
@@ -59,8 +57,8 @@ const templates = [
 }
 
 .switch-btn.active {
-  background: #4a6cf5;
-  border-color: #4a6cf5;
+  background: #0f2742;
+  border-color: #0f2742;
   color: #fff;
 }
 </style>

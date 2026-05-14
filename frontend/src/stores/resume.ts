@@ -1,27 +1,37 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { ResumeData } from '../types/resume'
+import type { CareerTemplate, ResumeData } from '../types/resume'
 import { defaultResume } from '../types/resume'
+import { inferCareerTemplate } from '../utils/career'
 
 export const useResumeStore = defineStore('resume', () => {
   const data = ref<ResumeData>({ ...defaultResume })
-  const template = ref<'classic' | 'modern' | 'minimal' | 'compact' | 'timeline' | 'bold'>('classic')
+  const template = ref<CareerTemplate>('it')
+  const templateLocked = ref(false)
 
   function setResume(resume: ResumeData) {
-    data.value = resume
+    data.value = { ...defaultResume, ...resume }
+    template.value = inferCareerTemplate(data.value)
+    templateLocked.value = false
   }
 
   function updateField<K extends keyof ResumeData>(key: K, value: ResumeData[K]) {
     data.value[key] = value
+    if (!templateLocked.value && key === 'targetRole') {
+      template.value = inferCareerTemplate(data.value)
+    }
   }
 
-  function setTemplate(t: 'classic' | 'modern' | 'minimal' | 'compact' | 'timeline' | 'bold') {
+  function setTemplate(t: CareerTemplate) {
     template.value = t
+    templateLocked.value = true
   }
 
   function reset() {
     data.value = { ...defaultResume }
+    template.value = 'it'
+    templateLocked.value = false
   }
 
-  return { data, template, setResume, updateField, setTemplate, reset }
+  return { data, template, templateLocked, setResume, updateField, setTemplate, reset }
 })

@@ -6,7 +6,7 @@
         <h1 class="brand-title">yourResume</h1>
       </div>
       <div class="top-actions">
-        <TemplateSwitcher v-if="hasData" v-model="store.template" />
+        <TemplateSwitcher v-if="hasData" :model-value="store.template" @update:model-value="store.setTemplate" />
         <PDFExporter v-if="hasData" :get-element="getPreviewEl" :filename="`${store.data.name || '简历'}_简历.pdf`" />
       </div>
     </header>
@@ -33,6 +33,8 @@
               <input class="field-input" :value="store.data.phone" @input="update('phone', ($event.target as HTMLInputElement).value)" placeholder="138-0000-0000" />
               <label class="field-label">地址</label>
               <input class="field-input" :value="store.data.location" @input="update('location', ($event.target as HTMLInputElement).value)" placeholder="城市" />
+              <label class="field-label">目标岗位</label>
+              <input class="field-input" :value="store.data.targetRole" @input="update('targetRole', ($event.target as HTMLInputElement).value)" placeholder="例如：前端开发工程师 / 市场经理" />
 
               <h4>摘要</h4>
               <textarea class="field-textarea" :value="store.data.summary"
@@ -131,7 +133,7 @@ async function handleFileSelected(content: string | File, fname: string) {
 }
 
 function update<K extends keyof ResumeData>(key: K, value: string) {
-  ;(store.data as any)[key] = value
+  store.updateField(key, value as ResumeData[K])
 }
 
 function handlePhotoUpload(e: Event) {

@@ -1,4 +1,5 @@
 import type { ResumeData } from '../types/resume'
+import { extractTargetRoleFromLine, isTargetRoleLabel } from './career'
 
 /**
  * 解析 Markdown 格式简历文本，提取结构化数据
@@ -10,6 +11,7 @@ export function parseMarkdown(text: string): ResumeData {
     email: '',
     phone: '',
     location: '',
+    targetRole: '',
     summary: '',
     education: [],
     experience: [],
@@ -19,6 +21,7 @@ export function parseMarkdown(text: string): ResumeData {
 
   let currentSection: keyof Pick<ResumeData, 'education' | 'experience' | 'skills' | 'projects'> | null = null
   let currentBlock: any = {}
+  let expectTargetRole = false
 
   const sectionKeywords: Record<string, 'education' | 'experience' | 'skills' | 'projects'> = {
     '教育背景': 'education',
@@ -35,6 +38,27 @@ export function parseMarkdown(text: string): ResumeData {
   for (const raw of lines) {
     const line = raw.trim()
     if (!line) continue
+
+    if (expectTargetRole) {
+      if (line.startsWith('## ')) {
+        expectTargetRole = false
+      } else {
+      data.targetRole = line.replace(/^[-*•·]\s*/, '').trim()
+      expectTargetRole = false
+      continue
+      }
+    }
+
+    const targetRole = extractTargetRoleFromLine(line)
+    if (targetRole && !data.targetRole) {
+      data.targetRole = targetRole
+      continue
+    }
+
+    if (isTargetRoleLabel(line)) {
+      expectTargetRole = true
+      continue
+    }
 
     // 一级标题 = 姓名
     if (line.startsWith('# ') && !line.startsWith('## ')) {

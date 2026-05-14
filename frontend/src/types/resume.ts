@@ -26,6 +26,7 @@ export interface ResumeData {
   email: string
   phone: string
   location: string
+  targetRole?: string
   summary: string
   photo?: string  // base64 data URL
   education: Education[]
@@ -34,11 +35,14 @@ export interface ResumeData {
   projects: Project[]
 }
 
+export type CareerTemplate = 'it' | 'marketing'
+
 export const defaultResume: ResumeData = {
   name: '',
   email: '',
   phone: '',
   location: '',
+  targetRole: '',
   summary: '',
   photo: undefined,
   education: [],
