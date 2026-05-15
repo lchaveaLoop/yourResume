@@ -36,7 +36,7 @@ function inferCareerTemplate(resume) {
     ...resume.skills,
   ].filter(Boolean).join(' ').toLowerCase();
   const score = (keywords) => keywords.reduce((sum, kw) => text.includes(kw.toLowerCase()) ? sum + 1 : sum, 0);
-  return score(marketingKeywords) > score(itKeywords) ? 'marketing' : 'it';
+  return score(marketingKeywords) > score(itKeywords) ? 'marketing' : 'ats';
 }
 
 // 直接复制 parser.ts 的逻辑 (转 JS)
@@ -212,9 +212,9 @@ const sectionRoleResult = parseMarkdown(`# 赵六
 `);
 
 assert.equal(itResult.targetRole, '前端开发工程师', 'should parse IT target role');
-assert.equal(inferCareerTemplate(itResult), 'it', 'should infer IT template');
+assert.equal(inferCareerTemplate(itResult), 'ats', 'should infer ATS template for IT resumes');
 assert.equal(marketingResult.targetRole, '市场经理/品牌营销', 'should parse marketing target role');
 assert.equal(inferCareerTemplate(marketingResult), 'marketing', 'should infer marketing template');
-assert.equal(inferCareerTemplate(fallbackResult), 'it', 'should fallback to IT template');
+assert.equal(inferCareerTemplate(fallbackResult), 'ats', 'should fallback to ATS template');
 assert.equal(sectionRoleResult.targetRole, '市场品牌经理', 'should parse target role from heading section');
 assert.equal(inferCareerTemplate(sectionRoleResult), 'marketing', 'should infer marketing from section target role');

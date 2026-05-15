@@ -98,7 +98,7 @@ export function inferCareerTemplate(resume: ResumeData): CareerTemplate {
   const itScore = scoreKeywords(weightedText, itKeywords)
   const marketingScore = scoreKeywords(weightedText, marketingKeywords)
 
-  return marketingScore > itScore ? 'marketing' : 'it'
+  return marketingScore > itScore ? 'marketing' : 'ats'
 }
 
 function normalizeTargetRoleLine(line: string): string {

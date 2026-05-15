@@ -4,58 +4,59 @@
 Accepted
 
 ## Context
-yourResume 需要一套完整的前后端技术方案，能够：
-1. 解析用户上传的 .docx / .md 简历文件
-2. 将解析结果以高颜值网页形式渲染
-3. 导出与预览一致的 PDF 文件
-4. MVP 优先，渐进增强，不过度工程化
+
+yourResume 需要支持用户上传 `.docx` / `.md` 简历，解析为结构化数据，在线编辑和预览，并导出与预览一致的 PDF。项目当前优先级是隐私、部署简单和核心流程稳定。
 
 ## Decision
-**前端**: Vue 3 (Composition API) + TypeScript + Vite + Tailwind CSS + Pinia  
-**后端**: Python FastAPI（按需引入，MVP 阶段可纯前端运行）
 
-**选型理由**:
+采用纯前端技术栈：
 
-### 前端选型
-- **Vue 3**: 生态成熟，学习曲线低，组件化思路清晰，适合快速开发
-- **TypeScript**: 简历数据结构清晰，TS 接口可明确约束字段类型，减少运行时错误
-- **Vite**: 开发体验好，热更新快，与 Vue 3 官方标配
-- **Tailwind CSS**: 快速实现多模板样式切换，不需要维护多套 CSS 文件
-- **Pinia**: Vue 3 官方推荐状态管理库，比 Vuex 轻量，TypeScript 支持好
+- Vue 3 (Composition API)
+- TypeScript
+- Vite
+- Tailwind CSS / scoped CSS
+- Pinia
+- JSZip
+- html2canvas + jsPDF
 
-### 后端选型
-- **FastAPI**: 轻量、现代化、Python 原生，简历解析核心逻辑用 Python 更自然（python-docx）
-- **按需引入**: MVP 阶段可纯前端实现（jszip + markitdown），降低部署复杂度
-- 后端仅在 docx 解析复杂度超出前端能力时引入
+当前不引入后端服务、爬虫脚本或服务端解析 API。
 
 ## Consequences
 
 ### Positive
-- 前端技术栈主流，学习成本低，易于招募/交接
-- Vite + Tailwind 开发效率高，样式迭代快
-- Python 后端处理 docx 天然优势，代码共享方便
-- 前后端分离，接口清晰，可独立迭代
+
+- 用户简历默认不离开浏览器，隐私边界清晰。
+- 部署简单，只需要静态前端产物。
+- 前端解析、编辑、预览和 PDF 导出在同一数据模型内完成，调试成本低。
+- 没有 Python/FastAPI/Scrapy/Playwright 等运行时依赖，环境更轻。
 
 ### Negative
-- 引入两套语言栈，前端需了解基本 Python/FastAPI
-- PDF 生成依赖前端 html2canvas，复杂布局可能有兼容性问题
-- 纯前端方案对 docx 复杂嵌套表格支持有限（但 MVP 简历格式通常不复杂）
+
+- `.docx` 解析依赖前端 OOXML 文本提取，对复杂表格、文本框、图片化内容支持有限。
+- AI 润色、分享链接、云端版本管理等能力未来若落地，需要重新设计服务端边界。
+- PDF 生成依赖浏览器 canvas，实现质量受浏览器渲染能力影响。
 
 ### Neutral
-- 技术栈不新颖，但足够稳定，踩坑少
-- 未来扩展 AI 功能时，Python 后端更容易集成大模型 API
+
+- 纯前端方案适合当前 MVP 和本地隐私优先场景。
+- 后续可以通过新增 ADR 再引入独立后端能力，但不得默认恢复爬虫或服务端上传链路。
 
 ## Alternatives Considered
 
-### 方案 B：Next.js (React) + Node.js
-- React 社区更大，但 Vue 对本项目复杂度来说更轻量
-- Next.js 的 SSR 功能对简历工具非必需
-- **未选**：学习曲线稍高，配置更重
+### Vue 3 + FastAPI
 
-### 方案 C：纯前端（无后端）
-- docx 解析依赖 jszip + 手动 XML 解析，复杂度高且脆弱
-- **未选**：解析可靠性不足，影响核心体验
+- 优点：服务端解析 docx 更稳定，未来 AI API 集成更自然。
+- 缺点：部署复杂度上升，隐私边界变重，当前核心流程不需要。
+- 结论：暂不采用。
 
-### 方案 D：React + Spring Boot (Java)
-- Java 生态重，部署麻烦
-- **未选**：过重，不符合 MVP 原则
+### Next.js / React
+
+- 优点：生态大，工程能力强。
+- 缺点：SSR 对本项目没有明显收益，当前 Vue 实现已经稳定。
+- 结论：不切换。
+
+### 服务端 PDF 渲染
+
+- 优点：分页和复杂 CSS 支持可能更稳定。
+- 缺点：增加后端部署和网络链路，违背当前本地导出目标。
+- 结论：保留为未来备选。

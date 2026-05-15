@@ -7,7 +7,7 @@
       </div>
       <div class="top-actions">
         <TemplateSwitcher v-if="hasData" :model-value="store.template" @update:model-value="store.setTemplate" />
-        <PDFExporter v-if="hasData" :get-element="getPreviewEl" :filename="`${store.data.name || '简历'}_简历.pdf`" />
+        <PDFExporter v-if="hasData" :get-element="getPreviewEl" :filename="`${store.data.name || '简历'}_简历.pdf`" :page-count="estimatedPages" />
       </div>
     </header>
 
@@ -90,7 +90,10 @@
           <div class="preview-sticky">
             <div class="preview-label">
               <span>📺 预览</span>
-              <span class="preview-hint">A4 尺寸，可导出 PDF</span>
+              <span class="preview-hint">
+                A4 尺寸 · 预计 {{ estimatedPages }} 页
+                <strong v-if="estimatedPages > 1"> · 内容较长，建议压缩描述</strong>
+              </span>
             </div>
             <div class="preview-scroll">
               <div class="preview-wrap">
@@ -105,10 +108,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useResumeStore } from '../stores/resume'
 import { parseMarkdown } from '../utils/parser'
 import { parseDocx } from '../utils/docx'
+import { estimatePdfPages } from '../utils/pdf'
 import FileUpload from '../components/FileUpload.vue'
 import ResumePreview from '../components/ResumePreview.vue'
 import TemplateSwitcher from '../components/TemplateSwitcher.vue'
@@ -118,6 +122,8 @@ import type { ResumeData } from '../types/resume'
 const store = useResumeStore()
 const previewRef = ref<InstanceType<typeof ResumePreview> | null>(null)
 const filename = ref('')
+const estimatedPages = ref(1)
+let previewResizeObserver: ResizeObserver | null = null
 
 const hasData = computed(() => !!store.data.name || store.data.experience.length > 0 || store.data.education.length > 0)
 
@@ -151,6 +157,30 @@ function getPreviewEl() {
   return previewRef.value?.el() ?? null
 }
 
+async function updatePageEstimate() {
+  await nextTick()
+  const el = getPreviewEl()
+  if (!el) {
+    estimatedPages.value = 1
+    previewResizeObserver?.disconnect()
+    previewResizeObserver = null
+    return
+  }
+  estimatedPages.value = estimatePdfPages(el).pageCount
+  ensurePreviewObserver()
+}
+
+function ensurePreviewObserver() {
+  if (previewResizeObserver) return
+  const el = getPreviewEl()
+  if (!el) return
+
+  previewResizeObserver = new ResizeObserver(() => {
+    void updatePageEstimate()
+  })
+  previewResizeObserver.observe(el)
+}
+
 // 同步 detailsRaw <-> details
 watch(() => store.data.experience, (list) => {
   list.forEach(e => {
@@ -167,6 +197,23 @@ watch(() => store.data.projects, (list) => {
     }
   })
 }, { immediate: true, deep: true })
+
+watch(
+  () => [store.data, store.template],
+  () => {
+    void updatePageEstimate()
+  },
+  { deep: true }
+)
+
+onMounted(() => {
+  void updatePageEstimate()
+})
+
+onBeforeUnmount(() => {
+  previewResizeObserver?.disconnect()
+  previewResizeObserver = null
+})
 
 function syncDetailsRaw(item: { details: string[]; detailsRaw?: string }) {
   item.details = item.detailsRaw ? item.detailsRaw.split('\n').filter(l => l.trim()) : []
@@ -274,6 +321,11 @@ function addProject() {
 .preview-hint {
   color: #94a3b8;
   font-weight: 400;
+}
+
+.preview-hint strong {
+  color: #fbbf24;
+  font-weight: 600;
 }
 
 .preview-scroll {

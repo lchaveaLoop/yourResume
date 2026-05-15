@@ -43,9 +43,9 @@ export function parseMarkdown(text: string): ResumeData {
       if (line.startsWith('## ')) {
         expectTargetRole = false
       } else {
-      data.targetRole = line.replace(/^[-*•·]\s*/, '').trim()
-      expectTargetRole = false
-      continue
+        data.targetRole = line.replace(/^[-*•·]\s*/, '').trim()
+        expectTargetRole = false
+        continue
       }
     }
 

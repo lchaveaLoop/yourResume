@@ -17,7 +17,9 @@ defineProps<{ modelValue: CareerTemplate }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: CareerTemplate): void }>()
 
 const templates = [
-  { value: 'it' as const, label: 'IT 技术' },
+  { value: 'ats' as const, label: 'ATS 单栏' },
+  { value: 'senior' as const, label: '高级工程师' },
+  { value: 'long' as const, label: '长简历' },
   { value: 'marketing' as const, label: '市场商务' },
 ]
 </script>

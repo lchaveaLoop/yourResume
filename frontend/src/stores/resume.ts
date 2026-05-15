@@ -6,7 +6,7 @@ import { inferCareerTemplate } from '../utils/career'
 
 export const useResumeStore = defineStore('resume', () => {
   const data = ref<ResumeData>({ ...defaultResume })
-  const template = ref<CareerTemplate>('it')
+  const template = ref<CareerTemplate>('ats')
   const templateLocked = ref(false)
 
   function setResume(resume: ResumeData) {
@@ -29,7 +29,7 @@ export const useResumeStore = defineStore('resume', () => {
 
   function reset() {
     data.value = { ...defaultResume }
-    template.value = 'it'
+    template.value = 'ats'
     templateLocked.value = false
   }
 
