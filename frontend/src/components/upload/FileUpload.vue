@@ -1,12 +1,25 @@
 <template>
-  <div class="upload-zone" :class="{ dragging: isDragging }" @dragover.prevent="isDragging = true"
-    @dragleave="isDragging = false" @drop.prevent="handleDrop" @click="triggerInput">
-    <input ref="fileInput" type="file" accept=".md,.docx,.txt" class="hidden-input" @change="handleFileChange" />
-    <div class="upload-content">
-      <div class="upload-icon">📄</div>
-      <p class="upload-text">拖拽简历文件到这里，或点击选择文件</p>
-      <p class="upload-hint">支持 .md / .docx 格式</p>
+  <div class="input-entry">
+    <div
+      class="upload-zone"
+      data-testid="resume-upload-zone"
+      :class="{ dragging: isDragging }"
+      @dragover.prevent="isDragging = true"
+      @dragleave="isDragging = false"
+      @drop.prevent="handleDrop"
+      @click="triggerInput"
+    >
+      <input ref="fileInput" data-testid="resume-upload-input" type="file" accept=".md,.docx,.txt" class="hidden-input" @change="handleFileChange" />
+      <div class="upload-content">
+        <div class="upload-icon">📄</div>
+        <p class="upload-text">拖拽简历文件到这里，或点击选择文件</p>
+        <p class="upload-hint">支持 .md / .docx 格式</p>
+      </div>
     </div>
+
+    <button class="blank-entry-button" type="button" data-testid="resume-create-blank" @click="emit('blank-selected')">
+      新建空白简历
+    </button>
   </div>
 </template>
 
@@ -15,6 +28,7 @@ import { ref } from 'vue'
 
 const emit = defineEmits<{
   (e: 'file-selected', content: string | File, filename: string): void
+  (e: 'blank-selected'): void
 }>()
 
 const isDragging = ref(false)
@@ -57,6 +71,12 @@ function readFile(file: File) {
 </script>
 
 <style scoped>
+.input-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .upload-zone {
   border: 2px dashed #cbd5e1;
   border-radius: 12px;
@@ -92,5 +112,24 @@ function readFile(file: File) {
 .upload-hint {
   font-size: 13px;
   color: #94a3b8;
+}
+
+.blank-entry-button {
+  width: 100%;
+  padding: 10px 14px;
+  color: #0f2742;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.blank-entry-button:hover {
+  color: #173a61;
+  background: #f8fafc;
+  border-color: #94a3b8;
 }
 </style>

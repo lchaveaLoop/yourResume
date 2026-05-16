@@ -1,6 +1,6 @@
 <template>
   <div class="pdf-actions">
-    <button class="btn-pdf" :disabled="loading" @click="handleExport">
+    <button class="btn-pdf" data-testid="export-pdf-button" :disabled="loading" @click="handleExport">
       <span v-if="loading">正在生成清晰 PDF...</span>
       <span v-else>导出 PDF</span>
     </button>
@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
-import { exportToPDF } from '../utils/pdf'
+import { exportToPDF } from '../../utils/pdf'
 
 const props = defineProps<{ getElement: () => HTMLElement | null; filename?: string; pageCount?: number }>()
 const loading = ref(false)

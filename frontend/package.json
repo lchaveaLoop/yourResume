@@ -5,17 +5,33 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "typecheck": "vue-tsc -p tsconfig.app.json --noEmit",
+    "typecheck:tests": "vue-tsc -p tsconfig.tests.json --noEmit",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts tests/unit",
+    "test:integration": "vitest run --config vitest.config.ts tests/integration",
+    "test:coverage": "vitest run --config vitest.config.ts --coverage",
+    "test:system": "playwright test --config playwright.config.ts",
+    "test:system:ui": "playwright test --config playwright.config.ts --ui",
+    "test:all": "npm run typecheck && npm run typecheck:tests && npm run test && npm run test:system"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.2.4",
     "@vitejs/plugin-vue": "^6.0.6",
+    "@vitest/coverage-v8": "^4.0.15",
+    "@vue/test-utils": "^2.4.6",
+    "@types/node": "^24.10.1",
     "autoprefixer": "^10.5.0",
+    "happy-dom": "^20.0.10",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.2.4",
     "typescript": "~6.0.2",
     "vite": "^8.0.10",
+    "vitest": "^4.0.15",
     "vue-tsc": "^3.2.8"
   },
   "dependencies": {

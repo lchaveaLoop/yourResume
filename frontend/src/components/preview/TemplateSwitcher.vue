@@ -3,6 +3,7 @@
     <span class="switch-label">模板：</span>
     <div class="switch-options">
       <button v-for="t in templates" :key="t.value" class="switch-btn" :class="{ active: modelValue === t.value }"
+        :data-testid="`template-option-${t.value}`" :aria-pressed="modelValue === t.value"
         @click="emit('update:modelValue', t.value)">
         {{ t.label }}
       </button>
@@ -11,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CareerTemplate } from '../types/resume'
+import type { CareerTemplate } from '../../types/resume'
 
 defineProps<{ modelValue: CareerTemplate }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: CareerTemplate): void }>()

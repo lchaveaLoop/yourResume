@@ -1,5 +1,5 @@
 <template>
-  <div class="resume-preview" ref="resumeRef">
+  <div class="resume-preview" data-testid="resume-preview" ref="resumeRef">
     <article v-if="template === 'ats'" class="resume-template template-ats">
       <header class="ats-header">
         <div class="profile-copy">
@@ -269,7 +269,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { CareerTemplate, ResumeData } from '../types/resume'
+import type { CareerTemplate, ResumeData } from '../../types/resume'
 
 const props = defineProps<{
   resume: ResumeData

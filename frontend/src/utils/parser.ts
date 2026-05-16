@@ -25,6 +25,7 @@ export function parseMarkdown(text: string): ResumeData {
 
   const sectionKeywords: Record<string, 'education' | 'experience' | 'skills' | 'projects'> = {
     '教育背景': 'education',
+    '教育经历': 'education',
     '教育': 'education',
     '工作经历': 'experience',
     '工作': 'experience',

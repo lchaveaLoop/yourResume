@@ -6,8 +6,8 @@
         <h1 class="brand-title">yourResume</h1>
       </div>
       <div class="top-actions">
-        <TemplateSwitcher v-if="hasData" :model-value="store.template" @update:model-value="store.setTemplate" />
-        <PDFExporter v-if="hasData" :get-element="getPreviewEl" :filename="`${store.data.name || '简历'}_简历.pdf`" :page-count="estimatedPages" />
+        <TemplateSwitcher v-if="showEditor" :model-value="store.template" @update:model-value="store.setTemplate" />
+        <ExportActions v-if="showEditor" :get-element="getPreviewEl" :filename="`${store.data.name || '简历'}_简历.pdf`" :page-count="estimatedPages" :resume="store.data" />
       </div>
     </header>
 
@@ -15,74 +15,8 @@
       <div class="workspace">
         <!-- 左侧：上传区 -->
         <aside class="left-panel">
-          <FileUpload v-if="!hasData" @file-selected="handleFileSelected" />
-          <div v-else class="panel-section">
-            <div class="section-header">
-              <h3>已加载简历</h3>
-              <button class="btn-reset" @click="store.reset()">重新上传</button>
-            </div>
-            <p class="filename">📄 {{ filename }}</p>
-
-            <div class="field-editor">
-              <h4>基本信息</h4>
-              <label class="field-label">姓名</label>
-              <input class="field-input" :value="store.data.name" @input="update('name', ($event.target as HTMLInputElement).value)" placeholder="姓名" />
-              <label class="field-label">邮箱</label>
-              <input class="field-input" :value="store.data.email" @input="update('email', ($event.target as HTMLInputElement).value)" placeholder="email@example.com" />
-              <label class="field-label">电话</label>
-              <input class="field-input" :value="store.data.phone" @input="update('phone', ($event.target as HTMLInputElement).value)" placeholder="138-0000-0000" />
-              <label class="field-label">地址</label>
-              <input class="field-input" :value="store.data.location" @input="update('location', ($event.target as HTMLInputElement).value)" placeholder="城市" />
-              <label class="field-label">目标岗位</label>
-              <input class="field-input" :value="store.data.targetRole" @input="update('targetRole', ($event.target as HTMLInputElement).value)" placeholder="例如：前端开发工程师 / 市场经理" />
-
-              <h4>摘要</h4>
-              <textarea class="field-textarea" :value="store.data.summary"
-                @input="update('summary', ($event.target as HTMLTextAreaElement).value)"
-                placeholder="个人简介，一句话描述自己" rows="3" />
-
-              <h4>照片</h4>
-              <div class="photo-upload">
-                <img v-if="store.data.photo" :src="store.data.photo" class="photo-preview" alt="照片" />
-                <input type="file" accept="image/*" @change="handlePhotoUpload" class="photo-input" />
-                <button v-if="store.data.photo" class="btn-remove-photo" @click="store.data.photo = undefined">删除照片</button>
-              </div>
-
-              <h4>教育经历 <button class="btn-add" @click="addEducation">+ 添加</button></h4>
-              <div v-for="(e, i) in store.data.education" :key="i" class="block-card">
-                <input class="field-input" v-model="e.school" placeholder="学校" />
-                <input class="field-input" v-model="e.degree" placeholder="学历 · 专业" />
-                <input class="field-input" v-model="e.duration" placeholder="时间" />
-                <button class="btn-remove" @click="store.data.education.splice(i, 1)">删除</button>
-              </div>
-
-              <h4>工作经历 <button class="btn-add" @click="addExperience">+ 添加</button></h4>
-              <div v-for="(e, i) in store.data.experience" :key="i" class="block-card">
-                <input class="field-input" v-model="e.company" placeholder="公司" />
-                <input class="field-input" v-model="e.title" placeholder="职位" />
-                <input class="field-input" v-model="e.duration" placeholder="时间" />
-                <textarea class="field-textarea" v-model="e.detailsRaw" @blur="syncDetailsRaw(e)" placeholder="工作描述（每行一条）" rows="3" />
-                <button class="btn-remove" @click="store.data.experience.splice(i, 1)">删除</button>
-              </div>
-
-              <h4>项目经历 <button class="btn-add" @click="addProject">+ 添加</button></h4>
-              <div v-for="(e, i) in store.data.projects" :key="i" class="block-card">
-                <input class="field-input" v-model="e.name" placeholder="项目名" />
-                <input class="field-input" v-model="e.role" placeholder="角色" />
-                <input class="field-input" v-model="e.duration" placeholder="时间" />
-                <textarea class="field-textarea" v-model="e.detailsRaw" @blur="syncDetailsRaw(e)" placeholder="项目描述（每行一条）" rows="3" />
-                <button class="btn-remove" @click="store.data.projects.splice(i, 1)">删除</button>
-              </div>
-
-              <h4>技能 <button class="btn-add" @click="store.data.skills.push('')">+ 添加</button></h4>
-              <div class="skills-editor">
-                <div v-for="(_, i) in store.data.skills" :key="i" class="skill-row">
-                  <input class="field-input" v-model="store.data.skills[i]" placeholder="技能名称" />
-                  <button class="btn-remove-sm" @click="store.data.skills.splice(i, 1)">×</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <FileUpload v-if="!showEditor" @file-selected="handleFileSelected" @blank-selected="handleBlankSelected" />
+          <ResumeEditor v-else :filename="filename" @reset="handleEditorReset" />
         </aside>
 
         <!-- 右侧：预览区 -->
@@ -90,7 +24,7 @@
           <div class="preview-sticky">
             <div class="preview-label">
               <span>📺 预览</span>
-              <span class="preview-hint">
+              <span class="preview-hint" data-testid="resume-page-estimate">
                 A4 尺寸 · 预计 {{ estimatedPages }} 页
                 <strong v-if="estimatedPages > 1"> · 内容较长，建议压缩描述</strong>
               </span>
@@ -112,22 +46,29 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useResumeStore } from '../stores/resume'
 import { parseMarkdown } from '../utils/parser'
 import { parseDocx } from '../utils/docx'
+import { clearDraft, hasResumeContent, loadDraft, saveDraft } from '../utils/draft'
 import { estimatePdfPages } from '../utils/pdf'
-import FileUpload from '../components/FileUpload.vue'
-import ResumePreview from '../components/ResumePreview.vue'
-import TemplateSwitcher from '../components/TemplateSwitcher.vue'
-import PDFExporter from '../components/PDFExporter.vue'
-import type { ResumeData } from '../types/resume'
+import FileUpload from '../components/upload/FileUpload.vue'
+import ResumePreview from '../components/preview/ResumePreview.vue'
+import TemplateSwitcher from '../components/preview/TemplateSwitcher.vue'
+import ExportActions from '../components/export/ExportActions.vue'
+import ResumeEditor from '../components/editor/ResumeEditor.vue'
 
 const store = useResumeStore()
 const previewRef = ref<InstanceType<typeof ResumePreview> | null>(null)
 const filename = ref('')
 const estimatedPages = ref(1)
+const draftPersistenceReady = ref(false)
+const editingStarted = ref(false)
 let previewResizeObserver: ResizeObserver | null = null
+let draftSaveTimer: number | null = null
+const DRAFT_SAVE_DELAY_MS = 300
 
-const hasData = computed(() => !!store.data.name || store.data.experience.length > 0 || store.data.education.length > 0)
+const hasData = computed(() => hasResumeContent(store.data))
+const showEditor = computed(() => editingStarted.value || hasData.value)
 
 async function handleFileSelected(content: string | File, fname: string) {
+  editingStarted.value = true
   filename.value = fname
   let parsed
   if (content instanceof File) {
@@ -138,19 +79,15 @@ async function handleFileSelected(content: string | File, fname: string) {
   store.setResume(parsed)
 }
 
-function update<K extends keyof ResumeData>(key: K, value: string) {
-  store.updateField(key, value as ResumeData[K])
+function handleBlankSelected() {
+  store.reset()
+  filename.value = '新建简历'
+  editingStarted.value = true
 }
 
-function handlePhotoUpload(e: Event) {
-  const input = e.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    store.data.photo = reader.result as string
-  }
-  reader.readAsDataURL(file)
+function handleEditorReset() {
+  filename.value = ''
+  editingStarted.value = false
 }
 
 function getPreviewEl() {
@@ -181,22 +118,47 @@ function ensurePreviewObserver() {
   previewResizeObserver.observe(el)
 }
 
-// 同步 detailsRaw <-> details
-watch(() => store.data.experience, (list) => {
-  list.forEach(e => {
-    if (e.detailsRaw == null) {
-      e.detailsRaw = e.details.join('\n')
-    }
-  })
-}, { immediate: true, deep: true })
+function restoreDraft() {
+  if (hasData.value) return
 
-watch(() => store.data.projects, (list) => {
-  list.forEach(p => {
-    if (p.detailsRaw == null) {
-      p.detailsRaw = p.details.join('\n')
-    }
-  })
-}, { immediate: true, deep: true })
+  const draft = loadDraft()
+  if (!draft) return
+
+  filename.value = '本地草稿'
+  editingStarted.value = true
+  store.setResume(draft)
+}
+
+function scheduleDraftSave() {
+  if (!draftPersistenceReady.value) return
+
+  if (draftSaveTimer) {
+    window.clearTimeout(draftSaveTimer)
+  }
+
+  draftSaveTimer = window.setTimeout(() => {
+    draftSaveTimer = null
+    persistDraftNow()
+  }, DRAFT_SAVE_DELAY_MS)
+}
+
+function persistDraftNow() {
+  if (!draftPersistenceReady.value) return
+
+  if (hasData.value) {
+    saveDraft(store.data)
+  } else {
+    clearDraft()
+  }
+}
+
+function flushDraftSave() {
+  if (!draftSaveTimer) return
+
+  window.clearTimeout(draftSaveTimer)
+  draftSaveTimer = null
+  persistDraftNow()
+}
 
 watch(
   () => [store.data, store.template],
@@ -206,30 +168,26 @@ watch(
   { deep: true }
 )
 
+watch(
+  () => store.data,
+  () => {
+    scheduleDraftSave()
+  },
+  { deep: true }
+)
+
 onMounted(() => {
+  restoreDraft()
+  draftPersistenceReady.value = true
   void updatePageEstimate()
 })
 
 onBeforeUnmount(() => {
+  flushDraftSave()
   previewResizeObserver?.disconnect()
   previewResizeObserver = null
 })
 
-function syncDetailsRaw(item: { details: string[]; detailsRaw?: string }) {
-  item.details = item.detailsRaw ? item.detailsRaw.split('\n').filter(l => l.trim()) : []
-}
-
-function addEducation() {
-  store.data.education.push({ school: '', degree: '', duration: '', details: '' })
-}
-
-function addExperience() {
-  store.data.experience.push({ company: '', title: '', duration: '', details: [] })
-}
-
-function addProject() {
-  store.data.projects.push({ name: '', role: '', duration: '', details: [] })
-}
 </script>
 
 <style scoped>
@@ -340,190 +298,4 @@ function addProject() {
   transform-origin: top center;
 }
 
-/* Editor styles */
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.section-header h3 {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a2e;
-}
-
-.filename {
-  font-size: 12px;
-  color: #64748b;
-  background: #e2e8f0;
-  padding: 6px 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.btn-reset {
-  font-size: 12px;
-  color: #64748b;
-  background: none;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  padding: 3px 10px;
-  cursor: pointer;
-}
-
-.btn-reset:hover {
-  color: #4a6cf5;
-  border-color: #4a6cf5;
-}
-
-.panel-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.field-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.field-editor h4 {
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-add {
-  font-size: 11px;
-  background: none;
-  border: none;
-  color: #4a6cf5;
-  cursor: pointer;
-  font-weight: 400;
-}
-
-.btn-add:hover {
-  text-decoration: underline;
-}
-
-.field-label {
-  font-size: 11px;
-  color: #94a3b8;
-  margin-top: 6px;
-}
-
-.field-input {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 12px;
-  color: #1a1a2e;
-  background: #fff;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.field-input:focus {
-  border-color: #4a6cf5;
-}
-
-.field-textarea {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 12px;
-  color: #1a1a2e;
-  background: #fff;
-  resize: vertical;
-  outline: none;
-  font-family: inherit;
-  transition: border-color 0.15s;
-}
-
-.field-textarea:focus {
-  border-color: #4a6cf5;
-}
-
-.block-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.btn-remove {
-  align-self: flex-end;
-  font-size: 11px;
-  color: #ef4444;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-remove:hover {
-  text-decoration: underline;
-}
-
-.skills-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.skill-row {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.btn-remove-sm {
-  background: none;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0 4px;
-}
-
-.photo-upload {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.photo-preview {
-  width: 100px;
-  height: 130px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-}
-
-.photo-input {
-  font-size: 11px;
-  color: #64748b;
-}
-
-.btn-remove-photo {
-  font-size: 11px;
-  color: #ef4444;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
-}
 </style>
