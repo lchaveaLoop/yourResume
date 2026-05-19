@@ -48,6 +48,7 @@ import { parseMarkdown } from '../utils/parser'
 import { parseDocx } from '../utils/docx'
 import { clearDraft, hasResumeContent, loadDraft, saveDraft } from '../utils/draft'
 import { estimatePdfPages } from '../utils/pdf'
+import { useToast } from '../composables/useToast'
 import FileUpload from '../components/upload/FileUpload.vue'
 import ResumePreview from '../components/preview/ResumePreview.vue'
 import TemplateSwitcher from '../components/preview/TemplateSwitcher.vue'
@@ -55,6 +56,7 @@ import ExportActions from '../components/export/ExportActions.vue'
 import ResumeEditor from '../components/editor/ResumeEditor.vue'
 
 const store = useResumeStore()
+const toast = useToast()
 const previewRef = ref<InstanceType<typeof ResumePreview> | null>(null)
 const filename = ref('')
 const estimatedPages = ref(1)
@@ -68,15 +70,20 @@ const hasData = computed(() => hasResumeContent(store.data))
 const showEditor = computed(() => editingStarted.value || hasData.value)
 
 async function handleFileSelected(content: string | File, fname: string) {
-  editingStarted.value = true
-  filename.value = fname
-  let parsed
-  if (content instanceof File) {
-    parsed = await parseDocx(content)
-  } else {
-    parsed = parseMarkdown(content)
+  try {
+    editingStarted.value = true
+    filename.value = fname
+    let parsed
+    if (content instanceof File) {
+      parsed = await parseDocx(content)
+    } else {
+      parsed = parseMarkdown(content)
+    }
+    store.setResume(parsed)
+  } catch (err) {
+    console.error(err)
+    toast.error('文件解析失败，请检查文件格式')
   }
-  store.setResume(parsed)
 }
 
 function handleBlankSelected() {
