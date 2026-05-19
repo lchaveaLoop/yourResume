@@ -16,11 +16,13 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { exportToPDF } from '../../utils/pdf'
+import { useToast } from '../../composables/useToast'
 
 const props = defineProps<{ getElement: () => HTMLElement | null; filename?: string; pageCount?: number }>()
 const loading = ref(false)
 const pdfUrl = ref('')
 const pdfFilename = ref('')
+const toast = useToast()
 
 const pageCount = computed(() => props.pageCount ?? 1)
 
@@ -35,7 +37,7 @@ async function handleExport() {
     pdfFilename.value = result.filename
   } catch (err) {
     console.error(err)
-    alert('PDF 生成失败，请重试')
+    toast.error('PDF 生成失败，请重试')
   } finally {
     loading.value = false
   }

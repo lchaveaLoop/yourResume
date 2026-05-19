@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useToast } from '../../composables/useToast'
 
 const emit = defineEmits<{
   (e: 'file-selected', content: string | File, filename: string): void
@@ -33,6 +34,7 @@ const emit = defineEmits<{
 
 const isDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+const toast = useToast()
 
 function triggerInput() {
   fileInput.value?.click()
@@ -50,13 +52,13 @@ function handleFileChange(e: Event) {
 }
 
 function readFile(file: File) {
-  if (file.size > 5 * 1024 * 1024) {
-    alert('文件过大，请控制在 5MB 以内')
-    return
-  }
   const ext = file.name.split('.').pop()?.toLowerCase()
   if (!ext || !['md', 'txt', 'docx', 'pdf'].includes(ext)) {
-    alert('暂不支持该文件格式，请上传 .md / .txt / .docx / .pdf 简历')
+    toast.warning('暂不支持该文件格式，请上传 .md / .txt / .docx / .pdf 简历')
+    return
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    toast.warning('文件过大，请控制在 5MB 以内')
     return
   }
   // docx / pdf 传递 File 对象，由父组件按类型解析
@@ -69,6 +71,9 @@ function readFile(file: File) {
   reader.onload = (e) => {
     const text = e.target?.result as string
     emit('file-selected', text, file.name)
+  }
+  reader.onerror = () => {
+    toast.error('文件读取失败，请重试')
   }
   reader.readAsText(file)
 }

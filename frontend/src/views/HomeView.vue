@@ -18,9 +18,6 @@
       <div class="workspace">
         <!-- 左侧：上传区 -->
         <aside class="left-panel">
-          <p v-if="uploadError && !showEditor" class="upload-error" data-testid="resume-upload-error">
-            {{ uploadError }}
-          </p>
           <FileUpload v-if="!showEditor" @file-selected="handleFileSelected" @blank-selected="handleBlankSelected" />
           <ResumeEditor v-else :filename="filename" @reset="handleEditorReset" />
         </aside>
@@ -55,6 +52,7 @@ import { parseDocx } from '../utils/docx'
 import { parsePdf } from '../utils/pdf-import'
 import { clearDraft, hasResumeContent, loadDraftEnvelope, saveDraft } from '../utils/draft'
 import { estimatePdfPages } from '../utils/pdf'
+import { useToast } from '../composables/useToast'
 import FileUpload from '../components/upload/FileUpload.vue'
 import ResumePreview from '../components/preview/ResumePreview.vue'
 import TemplateSwitcher from '../components/preview/TemplateSwitcher.vue'
@@ -62,9 +60,9 @@ import ExportActions from '../components/export/ExportActions.vue'
 import ResumeEditor from '../components/editor/ResumeEditor.vue'
 
 const store = useResumeStore()
+const toast = useToast()
 const previewRef = ref<InstanceType<typeof ResumePreview> | null>(null)
 const filename = ref('')
-const uploadError = ref('')
 const estimatedPages = ref(1)
 const draftPersistenceReady = ref(false)
 const editingStarted = ref(false)
@@ -86,8 +84,6 @@ const draftStatusLabel = computed(() => {
 })
 
 async function handleFileSelected(content: string | File, fname: string) {
-  uploadError.value = ''
-
   try {
     const parsed = content instanceof File
       ? await parseUploadedFile(content, fname)
@@ -96,19 +92,16 @@ async function handleFileSelected(content: string | File, fname: string) {
     filename.value = fname
     editingStarted.value = true
     store.setResume(parsed)
-  } catch (error) {
-    filename.value = ''
-    editingStarted.value = false
-    uploadError.value = error instanceof Error
-      ? error.message
-      : '解析失败，请检查文件内容后重试'
+  } catch (err) {
+    console.error(err)
+    const message = err instanceof Error ? err.message : '文件解析失败，请检查文件格式'
+    toast.error(message)
   }
 }
 
 function handleBlankSelected() {
   store.reset()
   filename.value = '新建简历'
-  uploadError.value = ''
   editingStarted.value = true
   clearPersistedDraft()
 }
@@ -116,7 +109,6 @@ function handleBlankSelected() {
 function handleEditorReset() {
   clearPersistedDraft()
   filename.value = ''
-  uploadError.value = ''
   editingStarted.value = false
 }
 
@@ -341,16 +333,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.upload-error {
-  color: #b91c1c;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  font-size: 12px;
-  line-height: 1.5;
-  padding: 8px 10px;
 }
 
 .right-panel {

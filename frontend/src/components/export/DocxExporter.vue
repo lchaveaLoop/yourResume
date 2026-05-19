@@ -16,6 +16,7 @@
 import { onBeforeUnmount, ref } from 'vue'
 import type { ResumeData } from '../../types/resume'
 import { exportToDOCX } from '../../utils/docx-export'
+import { useToast } from '../../composables/useToast'
 
 const props = defineProps<{
   resume: ResumeData
@@ -25,6 +26,7 @@ const props = defineProps<{
 const loading = ref(false)
 const docxUrl = ref('')
 const docxFilename = ref('')
+const toast = useToast()
 
 async function handleExport() {
   loading.value = true
@@ -35,7 +37,7 @@ async function handleExport() {
     docxFilename.value = result.filename
   } catch (err) {
     console.error(err)
-    alert('DOCX 生成失败，请重试')
+    toast.error('DOCX 生成失败，请重试')
   } finally {
     loading.value = false
   }
