@@ -1,4 +1,5 @@
 import type { ResumeData } from '../types/resume'
+import type { CareerTemplate } from '../types/resume'
 import { normalizeResume, type ResumeInput } from './resume-normalizer'
 
 export const RESUME_DRAFT_STORAGE_KEY = 'yourResume:draft:v1'
@@ -8,6 +9,13 @@ export interface ResumeDraftEnvelope {
   version: number
   savedAt: string
   resume: ResumeData
+  template?: CareerTemplate
+  templateLocked?: boolean
+}
+
+export interface ResumeDraftMetadata {
+  template?: CareerTemplate
+  templateLocked?: boolean
 }
 
 type DraftStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
@@ -16,6 +24,7 @@ type UnknownRecord = Record<string, unknown>
 export function saveDraft(
   resume: ResumeData,
   storage: DraftStorage | null = getBrowserStorage(),
+  metadata: ResumeDraftMetadata = {},
 ): boolean {
   if (!storage) return false
 
@@ -24,6 +33,7 @@ export function saveDraft(
       version: RESUME_DRAFT_VERSION,
       savedAt: new Date().toISOString(),
       resume: normalizeResume(resume),
+      ...normalizeDraftMetadata(metadata),
     }
     storage.setItem(RESUME_DRAFT_STORAGE_KEY, JSON.stringify(payload))
     return true
@@ -58,6 +68,7 @@ export function loadDraftEnvelope(
       version: extractVersion(parsed),
       savedAt: extractSavedAt(parsed),
       resume,
+      ...normalizeDraftMetadata(parsed),
     }
   } catch {
     return null
@@ -127,6 +138,29 @@ function extractVersion(value: unknown): number {
 function extractSavedAt(value: unknown): string {
   if (!isRecord(value)) return ''
   return typeof value.savedAt === 'string' ? value.savedAt : ''
+}
+
+function normalizeDraftMetadata(value: unknown): ResumeDraftMetadata {
+  if (!isRecord(value)) return {}
+
+  const template = extractCareerTemplate(value.template)
+  return {
+    ...(template ? { template } : {}),
+    ...(typeof value.templateLocked === 'boolean' ? { templateLocked: value.templateLocked } : {}),
+  }
+}
+
+function extractCareerTemplate(value: unknown): CareerTemplate | undefined {
+  if (
+    value === 'ats' ||
+    value === 'senior' ||
+    value === 'long' ||
+    value === 'marketing'
+  ) {
+    return value
+  }
+
+  return undefined
 }
 
 function isRecord(value: unknown): value is UnknownRecord {

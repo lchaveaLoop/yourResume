@@ -21,10 +21,10 @@
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.2.4",
+    "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vitest/coverage-v8": "^4.0.15",
     "@vue/test-utils": "^2.4.6",
-    "@types/node": "^24.10.1",
     "autoprefixer": "^10.5.0",
     "happy-dom": "^20.0.10",
     "postcss": "^8.5.14",
@@ -38,6 +38,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "jszip": "^3.10.1",
+    "pdfjs-dist": "^5.7.284",
     "pinia": "^3.0.4"
   }
 }

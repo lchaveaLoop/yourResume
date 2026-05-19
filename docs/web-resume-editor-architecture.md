@@ -98,15 +98,7 @@ Every input and output module should depend on this contract instead of dependin
 
 The data normalization module is separate from the data contract. A future file such as `frontend/src/utils/resume-normalizer.ts` should own this responsibility.
 
-Its job is to convert incomplete, dirty, legacy, or source-specific data into a clean `ResumeData` object. Typical responsibilities:
-
-- Fill missing fields with defaults.
-- Ensure list fields are always arrays.
-- Remove empty skills or empty detail lines.
-- Trim user-entered text where appropriate.
-- Convert editor-friendly fields into canonical fields, for example `detailsRaw` into `details`.
-- Normalize parser output before it enters the store.
-- Normalize restored drafts before they are displayed or exported.
+Its job is to convert incomplete, dirty, legacy, or source-specific data into a clean `ResumeData` object.
 
 This distinction matters:
 
@@ -115,60 +107,27 @@ Data contract defines the standard.
 Data normalization makes real input conform to the standard.
 ```
 
-For the first refactor, it is acceptable to keep `detailsRaw` in `ResumeData` to reduce migration risk. A later cleanup can split pure resume data from editor-only state if the editor grows more complex.
-
 ## Module Split Target
-
-The current `HomeView.vue` should become a page composition layer. It should coordinate upload parsing, preview references, page estimation, and top-level layout, but it should not own all editor fields and list mutation logic.
 
 Recommended component boundaries:
 
 ```text
-frontend/src/views/
-  HomeView.vue
-
-frontend/src/components/upload/
-  FileUpload.vue
-
-frontend/src/components/editor/
-  ResumeEditor.vue
-  BasicInfoEditor.vue
-  PhotoEditor.vue
-  EducationEditor.vue
-  ExperienceEditor.vue
-  ProjectEditor.vue
-  SkillsEditor.vue
-
-frontend/src/components/preview/
-  ResumePreview.vue
-  TemplateSwitcher.vue
-
-frontend/src/components/export/
-  ExportActions.vue
-  PDFExporter.vue
-  DocxExporter.vue
+frontend/src/views/HomeView.vue
+frontend/src/components/upload/FileUpload.vue
+frontend/src/components/editor/ResumeEditor.vue, BasicInfoEditor.vue, PhotoEditor.vue, EducationEditor.vue, ExperienceEditor.vue, ProjectEditor.vue, SkillsEditor.vue
+frontend/src/components/preview/ResumePreview.vue, TemplateSwitcher.vue
+frontend/src/components/export/ExportActions.vue, PDFExporter.vue, DocxExporter.vue
 ```
-
-`ResumeEditor.vue` should compose the editor sections. Section components should focus on rendering and dispatching edit actions. The Pinia store should centralize list mutations and detail synchronization so that components do not scatter `push`, `splice`, and data cleanup behavior.
 
 ## Output Boundaries
 
-PDF and DOCX exports should use different adapters because they have different goals.
+PDF uses DOM preview → html2canvas → jsPDF. DOCX is generated from ResumeData.
 
-PDF should continue to use the rendered A4 DOM preview as its source. This keeps the exported PDF visually aligned with the web preview.
-
-DOCX should be generated from `ResumeData`, not from the DOM. DOCX output should prioritize editable, ATS-friendly structure. It does not need to match every visual detail of the web preview in the first version.
-
-Draft persistence should also consume normalized `ResumeData`. Draft loading should pass through the normalization layer before entering the store.
+Draft persistence consumes normalized ResumeData. Draft loading passes through normalization.
 
 ## Implementation Guidance
 
-When implementing the next phase:
-
-- Keep `ResumeData` as the single normalized internal model.
-- Introduce `resume-normalizer.ts` before adding more input or output paths.
+- Keep ResumeData as the single normalized internal model.
+- Introduce resume-normalizer.ts before adding more input or output paths.
 - Move editor list operations into store actions.
-- Keep `HomeView.vue` as orchestration, not business logic storage.
-- Add `ExportActions.vue` as the stable place for PDF now and DOCX later.
 - Do not introduce a backend for this refactor.
-- Record larger architectural decisions in ADRs when the refactor begins.

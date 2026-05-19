@@ -6,6 +6,9 @@
         <h1 class="brand-title">yourResume</h1>
       </div>
       <div class="top-actions">
+        <span v-if="showEditor" class="draft-status" data-testid="resume-draft-status">
+          {{ draftStatusLabel }}
+        </span>
         <TemplateSwitcher v-if="showEditor" :model-value="store.template" @update:model-value="store.setTemplate" />
         <ExportActions v-if="showEditor" :get-element="getPreviewEl" :filename="`${store.data.name || '简历'}_简历.pdf`" :page-count="estimatedPages" :resume="store.data" />
       </div>
@@ -15,6 +18,9 @@
       <div class="workspace">
         <!-- 左侧：上传区 -->
         <aside class="left-panel">
+          <p v-if="uploadError && !showEditor" class="upload-error" data-testid="resume-upload-error">
+            {{ uploadError }}
+          </p>
           <FileUpload v-if="!showEditor" @file-selected="handleFileSelected" @blank-selected="handleBlankSelected" />
           <ResumeEditor v-else :filename="filename" @reset="handleEditorReset" />
         </aside>
@@ -46,7 +52,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useResumeStore } from '../stores/resume'
 import { parseMarkdown } from '../utils/parser'
 import { parseDocx } from '../utils/docx'
-import { clearDraft, hasResumeContent, loadDraft, saveDraft } from '../utils/draft'
+import { parsePdf } from '../utils/pdf-import'
+import { clearDraft, hasResumeContent, loadDraftEnvelope, saveDraft } from '../utils/draft'
 import { estimatePdfPages } from '../utils/pdf'
 import FileUpload from '../components/upload/FileUpload.vue'
 import ResumePreview from '../components/preview/ResumePreview.vue'
@@ -57,37 +64,75 @@ import ResumeEditor from '../components/editor/ResumeEditor.vue'
 const store = useResumeStore()
 const previewRef = ref<InstanceType<typeof ResumePreview> | null>(null)
 const filename = ref('')
+const uploadError = ref('')
 const estimatedPages = ref(1)
 const draftPersistenceReady = ref(false)
 const editingStarted = ref(false)
+const draftStatus = ref<'idle' | 'pending' | 'saved' | 'restored' | 'cleared' | 'unavailable'>('idle')
+const lastDraftSavedAt = ref('')
 let previewResizeObserver: ResizeObserver | null = null
 let draftSaveTimer: number | null = null
 const DRAFT_SAVE_DELAY_MS = 300
 
 const hasData = computed(() => hasResumeContent(store.data))
 const showEditor = computed(() => editingStarted.value || hasData.value)
+const draftStatusLabel = computed(() => {
+  if (draftStatus.value === 'pending') return '草稿保存中...'
+  if (draftStatus.value === 'saved') return lastDraftSavedAt.value ? `草稿已自动保存 ${lastDraftSavedAt.value}` : '草稿已自动保存'
+  if (draftStatus.value === 'restored') return '已恢复本地草稿'
+  if (draftStatus.value === 'cleared') return '草稿已清除'
+  if (draftStatus.value === 'unavailable') return '草稿保存不可用'
+  return '草稿会自动保存'
+})
 
 async function handleFileSelected(content: string | File, fname: string) {
-  editingStarted.value = true
-  filename.value = fname
-  let parsed
-  if (content instanceof File) {
-    parsed = await parseDocx(content)
-  } else {
-    parsed = parseMarkdown(content)
+  uploadError.value = ''
+
+  try {
+    const parsed = content instanceof File
+      ? await parseUploadedFile(content, fname)
+      : parseMarkdown(content)
+
+    filename.value = fname
+    editingStarted.value = true
+    store.setResume(parsed)
+  } catch (error) {
+    filename.value = ''
+    editingStarted.value = false
+    uploadError.value = error instanceof Error
+      ? error.message
+      : '解析失败，请检查文件内容后重试'
   }
-  store.setResume(parsed)
 }
 
 function handleBlankSelected() {
   store.reset()
   filename.value = '新建简历'
+  uploadError.value = ''
   editingStarted.value = true
+  clearPersistedDraft()
 }
 
 function handleEditorReset() {
+  clearPersistedDraft()
   filename.value = ''
+  uploadError.value = ''
   editingStarted.value = false
+}
+
+async function parseUploadedFile(file: File, fname: string) {
+  if (isPdfFile(file, fname)) return parsePdf(file)
+  if (isDocxFile(file, fname)) return parseDocx(file)
+  throw new Error('暂不支持该文件格式，请上传 .md / .txt / .docx / .pdf 简历')
+}
+
+function isPdfFile(file: File, fname: string) {
+  return file.type === 'application/pdf' || fname.toLowerCase().endsWith('.pdf')
+}
+
+function isDocxFile(file: File, fname: string) {
+  return file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    fname.toLowerCase().endsWith('.docx')
 }
 
 function getPreviewEl() {
@@ -121,12 +166,14 @@ function ensurePreviewObserver() {
 function restoreDraft() {
   if (hasData.value) return
 
-  const draft = loadDraft()
+  const draft = loadDraftEnvelope()
   if (!draft) return
 
   filename.value = '本地草稿'
   editingStarted.value = true
-  store.setResume(draft)
+  store.restoreResumeDraft(draft.resume, draft.template, draft.templateLocked)
+  draftStatus.value = 'restored'
+  lastDraftSavedAt.value = formatDraftSavedAt(draft.savedAt)
 }
 
 function scheduleDraftSave() {
@@ -136,6 +183,7 @@ function scheduleDraftSave() {
     window.clearTimeout(draftSaveTimer)
   }
 
+  draftStatus.value = 'pending'
   draftSaveTimer = window.setTimeout(() => {
     draftSaveTimer = null
     persistDraftNow()
@@ -146,9 +194,16 @@ function persistDraftNow() {
   if (!draftPersistenceReady.value) return
 
   if (hasData.value) {
-    saveDraft(store.data)
+    const saved = saveDraft(store.data, undefined, {
+      template: store.template,
+      templateLocked: store.templateLocked,
+    })
+    draftStatus.value = saved ? 'saved' : 'unavailable'
+    lastDraftSavedAt.value = saved ? formatDraftSavedAt(new Date().toISOString()) : ''
   } else {
-    clearDraft()
+    const cleared = clearDraft()
+    draftStatus.value = cleared ? 'cleared' : 'unavailable'
+    lastDraftSavedAt.value = ''
   }
 }
 
@@ -158,6 +213,29 @@ function flushDraftSave() {
   window.clearTimeout(draftSaveTimer)
   draftSaveTimer = null
   persistDraftNow()
+}
+
+function clearPersistedDraft() {
+  if (draftSaveTimer) {
+    window.clearTimeout(draftSaveTimer)
+    draftSaveTimer = null
+  }
+
+  const cleared = clearDraft()
+  draftStatus.value = cleared ? 'cleared' : 'unavailable'
+  lastDraftSavedAt.value = ''
+}
+
+function formatDraftSavedAt(value: string) {
+  if (!value) return ''
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+
+  return date.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 watch(
@@ -176,10 +254,18 @@ watch(
   { deep: true }
 )
 
-onMounted(() => {
+watch(
+  () => [store.template, store.templateLocked],
+  () => {
+    scheduleDraftSave()
+  }
+)
+
+onMounted(async () => {
   restoreDraft()
-  draftPersistenceReady.value = true
   void updatePageEstimate()
+  await nextTick()
+  draftPersistenceReady.value = true
 })
 
 onBeforeUnmount(() => {
@@ -230,6 +316,12 @@ onBeforeUnmount(() => {
   gap: 16px;
 }
 
+.draft-status {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .main-content {
   flex: 1;
   overflow: hidden;
@@ -249,6 +341,16 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.upload-error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px 10px;
 }
 
 .right-panel {

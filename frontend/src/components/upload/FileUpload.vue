@@ -9,11 +9,11 @@
       @drop.prevent="handleDrop"
       @click="triggerInput"
     >
-      <input ref="fileInput" data-testid="resume-upload-input" type="file" accept=".md,.docx,.txt" class="hidden-input" @change="handleFileChange" />
+      <input ref="fileInput" data-testid="resume-upload-input" type="file" accept=".md,.txt,.docx,.pdf" class="hidden-input" @change="handleFileChange" />
       <div class="upload-content">
         <div class="upload-icon">📄</div>
         <p class="upload-text">拖拽简历文件到这里，或点击选择文件</p>
-        <p class="upload-hint">支持 .md / .docx 格式</p>
+        <p class="upload-hint">支持 .md / .txt / .docx / .pdf 格式</p>
       </div>
     </div>
 
@@ -55,8 +55,12 @@ function readFile(file: File) {
     return
   }
   const ext = file.name.split('.').pop()?.toLowerCase()
-  // docx 传递 File 对象，由父组件用 jszip 解析
-  if (ext === 'docx') {
+  if (!ext || !['md', 'txt', 'docx', 'pdf'].includes(ext)) {
+    alert('暂不支持该文件格式，请上传 .md / .txt / .docx / .pdf 简历')
+    return
+  }
+  // docx / pdf 传递 File 对象，由父组件按类型解析
+  if (ext === 'docx' || ext === 'pdf') {
     emit('file-selected', file, file.name)
     return
   }

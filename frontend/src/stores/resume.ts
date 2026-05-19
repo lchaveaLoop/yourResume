@@ -15,6 +15,16 @@ export const useResumeStore = defineStore('resume', () => {
     templateLocked.value = false
   }
 
+  function restoreResumeDraft(
+    resume: ResumeInput | null | undefined,
+    restoredTemplate?: CareerTemplate,
+    restoredTemplateLocked = false,
+  ) {
+    data.value = normalizeResume(resume)
+    template.value = restoredTemplate ?? inferCareerTemplate(data.value)
+    templateLocked.value = Boolean(restoredTemplate && restoredTemplateLocked)
+  }
+
   function updateField<K extends keyof ResumeData>(key: K, value: ResumeData[K]) {
     data.value[key] = value
     if (!templateLocked.value && key === 'targetRole') {
@@ -161,6 +171,7 @@ export const useResumeStore = defineStore('resume', () => {
     template,
     templateLocked,
     setResume,
+    restoreResumeDraft,
     updateField,
     setTemplate,
     setPhoto,

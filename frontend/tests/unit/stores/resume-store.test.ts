@@ -34,6 +34,34 @@ describe('resume store', () => {
     expect(store.templateLocked).toBe(true)
   })
 
+  it('restores draft data with a manually selected template', () => {
+    const store = useResumeStore()
+
+    store.restoreResumeDraft({
+      name: '林一',
+      targetRole: '前端开发工程师',
+    }, 'senior', true)
+
+    expect(store.data.name).toBe('林一')
+    expect(store.template).toBe('senior')
+    expect(store.templateLocked).toBe(true)
+
+    store.updateField('targetRole', '市场品牌经理')
+
+    expect(store.template).toBe('senior')
+  })
+
+  it('infers template for drafts without locked template metadata', () => {
+    const store = useResumeStore()
+
+    store.restoreResumeDraft({
+      targetRole: '市场品牌经理',
+    })
+
+    expect(store.template).toBe('marketing')
+    expect(store.templateLocked).toBe(false)
+  })
+
   it('supports photo and list editing actions while preserving temporary empty rows', () => {
     const store = useResumeStore()
 
