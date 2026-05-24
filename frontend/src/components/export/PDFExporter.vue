@@ -1,22 +1,31 @@
 <template>
   <div class="pdf-actions">
-    <button class="btn-pdf" data-testid="export-pdf-button" :disabled="loading" @click="handleExport">
-      <span v-if="loading">正在生成清晰 PDF...</span>
+    <button class="control-button primary export-button" data-testid="export-pdf-button" :disabled="loading" @click="handleExport">
+      <Loader2 v-if="loading" class="icon spinning" aria-hidden="true" />
+      <Download v-else class="icon" aria-hidden="true" />
+      <span v-if="loading">正在生成 PDF...</span>
       <span v-else>导出 PDF</span>
     </button>
-    <div v-if="pdfUrl" class="pdf-result">
-      <span>PDF 已生成</span>
+    <div v-if="pdfUrl" class="export-result">
+      <span>
+        <CheckCircle2 class="icon" aria-hidden="true" />
+        PDF 已生成
+      </span>
       <a :href="pdfUrl" :download="pdfFilename">再次下载</a>
-      <a :href="pdfUrl" target="_blank" rel="noopener">打开预览</a>
+      <a :href="pdfUrl" target="_blank" rel="noopener">
+        打开预览
+        <ExternalLink class="icon" aria-hidden="true" />
+      </a>
     </div>
-    <p v-if="pageCount > 1" class="pdf-note">预计 {{ pageCount }} 页，可继续导出。</p>
+    <p v-if="pageCount > 1" class="export-note">预计 {{ pageCount }} 页，可继续导出。</p>
   </div>
 </template>
 
 <script setup lang="ts">
+import { CheckCircle2, Download, ExternalLink, Loader2 } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, ref } from 'vue'
-import { exportToPDF } from '../../utils/pdf'
 import { useToast } from '../../composables/useToast'
+import { exportToPDF } from '../../utils/pdf'
 
 const props = defineProps<{ getElement: () => HTMLElement | null; filename?: string; pageCount?: number }>()
 const loading = ref(false)
@@ -60,55 +69,65 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: 5px;
   justify-content: flex-end;
 }
 
-.btn-pdf {
-  padding: 9px 18px;
-  background: #0f2742;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 650;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.export-button {
+  min-width: 112px;
 }
 
-.btn-pdf:hover:not(:disabled) {
-  background: #173a61;
-}
-
-.btn-pdf:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.pdf-note {
+.export-note {
   margin: 0;
-  color: #64748b;
+  color: var(--color-warning);
   font-size: 11px;
+  font-weight: 700;
 }
 
-.pdf-result {
+.export-result {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
-  color: #475569;
+  color: var(--color-muted);
   font-size: 11px;
+  white-space: nowrap;
 }
 
-.pdf-result a {
-  color: #0f2742;
-  font-weight: 650;
+.export-result span,
+.export-result a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.export-result span {
+  color: var(--color-success);
+  font-weight: 800;
+}
+
+.export-result .icon {
+  width: 13px;
+  height: 13px;
+}
+
+.export-result a {
+  color: var(--color-brand);
+  font-weight: 750;
   text-decoration: none;
 }
 
-.pdf-result a:hover {
+.export-result a:hover {
   text-decoration: underline;
+}
+
+.spinning {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

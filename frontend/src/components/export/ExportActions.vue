@@ -1,5 +1,5 @@
 <template>
-  <div class="export-actions" data-testid="export-actions">
+  <div class="export-actions" data-testid="export-actions" aria-label="导出简历">
     <PDFExporter :get-element="getElement" :filename="filename" :page-count="pageCount" />
     <DocxExporter :resume="resume" :filename="filename" />
   </div>
@@ -22,6 +22,15 @@ defineProps<{
 .export-actions {
   display: flex;
   align-items: flex-start;
+  justify-content: flex-end;
   gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .export-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 }
 </style>

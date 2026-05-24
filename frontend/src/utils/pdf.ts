@@ -14,14 +14,25 @@ export interface PdfExportResult {
 }
 
 export function estimatePdfPages(element: HTMLElement): PdfPageInfo {
-  const pageHeightPx = element.clientWidth * (297 / 210)
-  const contentHeightPx = Math.max(element.scrollHeight, element.getBoundingClientRect().height)
+  const rect = element.getBoundingClientRect()
+  const elementWidth = firstFinitePositive(element.clientWidth, rect.width, 794)
+  const pageHeightPx = elementWidth * (297 / 210)
+  const contentHeightPx = firstFinitePositive(
+    Math.max(element.scrollHeight, rect.height),
+    element.scrollHeight,
+    rect.height,
+    pageHeightPx,
+  )
 
   return {
     pageCount: Math.max(1, Math.ceil(contentHeightPx / pageHeightPx)),
     pageHeightPx,
     contentHeightPx,
   }
+}
+
+function firstFinitePositive(...values: number[]) {
+  return values.find(value => Number.isFinite(value) && value > 0) ?? 1
 }
 
 /**

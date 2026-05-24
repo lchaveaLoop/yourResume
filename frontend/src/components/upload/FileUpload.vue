@@ -4,26 +4,49 @@
       class="upload-zone"
       data-testid="resume-upload-zone"
       :class="{ dragging: isDragging }"
+      role="button"
+      tabindex="0"
       @dragover.prevent="isDragging = true"
       @dragleave="isDragging = false"
       @drop.prevent="handleDrop"
       @click="triggerInput"
+      @keydown.enter.prevent="triggerInput"
+      @keydown.space.prevent="triggerInput"
     >
-      <input ref="fileInput" data-testid="resume-upload-input" type="file" accept=".md,.txt,.docx,.pdf" class="hidden-input" @change="handleFileChange" />
+      <input
+        ref="fileInput"
+        data-testid="resume-upload-input"
+        type="file"
+        accept=".md,.txt,.docx,.pdf"
+        class="hidden-input"
+        @change="handleFileChange"
+      />
       <div class="upload-content">
-        <div class="upload-icon">📄</div>
-        <p class="upload-text">拖拽简历文件到这里，或点击选择文件</p>
-        <p class="upload-hint">支持 .md / .txt / .docx / .pdf 格式</p>
+        <span class="upload-icon" aria-hidden="true">
+          <UploadCloud class="icon" />
+        </span>
+        <div>
+          <p class="upload-title">拖入简历文件</p>
+          <p class="upload-text">支持 Markdown、TXT、DOCX 和文本型 PDF，所有解析都在浏览器本地完成。</p>
+        </div>
+      </div>
+      <div class="upload-footer">
+        <span>.md</span>
+        <span>.txt</span>
+        <span>.docx</span>
+        <span>.pdf</span>
       </div>
     </div>
 
     <button class="blank-entry-button" type="button" data-testid="resume-create-blank" @click="emit('blank-selected')">
+      <FilePlus2 class="icon" aria-hidden="true" />
       新建空白简历
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { FilePlus2, UploadCloud } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { useToast } from '../../composables/useToast'
 
@@ -61,12 +84,11 @@ function readFile(file: File) {
     toast.warning('文件过大，请控制在 5MB 以内')
     return
   }
-  // docx / pdf 传递 File 对象，由父组件按类型解析
   if (ext === 'docx' || ext === 'pdf') {
     emit('file-selected', file, file.name)
     return
   }
-  // md / txt 读取为文本
+
   const reader = new FileReader()
   reader.onload = (e) => {
     const text = e.target?.result as string
@@ -83,62 +105,100 @@ function readFile(file: File) {
 .input-entry {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .upload-zone {
-  border: 2px dashed #cbd5e1;
-  border-radius: 12px;
-  padding: 40px 24px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 26px;
+  min-height: 260px;
+  padding: 24px;
+  color: var(--color-ink);
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(145deg, rgba(31, 77, 115, 0.42), rgba(167, 121, 61, 0.52)) border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
   cursor: pointer;
-  transition: all 0.2s;
-  background: #f8fafc;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
 }
 
 .upload-zone:hover,
-.dragging {
-  border-color: #4a6cf5;
-  background: #eff6ff;
+.upload-zone.dragging {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.13);
+}
+
+.upload-zone.dragging {
+  background:
+    linear-gradient(#f7fbff, #f7fbff) padding-box,
+    linear-gradient(145deg, var(--color-brand-2), var(--color-accent)) border-box;
 }
 
 .hidden-input {
   display: none;
 }
 
+.upload-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .upload-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  color: var(--color-brand);
+  background: var(--color-panel-strong);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  flex-shrink: 0;
+}
+
+.upload-icon .icon {
+  width: 25px;
+  height: 25px;
+}
+
+.upload-title {
+  color: var(--color-ink-strong);
+  font-size: 22px;
+  font-weight: 850;
+  line-height: 1.18;
 }
 
 .upload-text {
-  font-size: 16px;
-  font-weight: 500;
-  color: #1a1a2e;
-  margin-bottom: 4px;
+  margin-top: 8px;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.7;
 }
 
-.upload-hint {
-  font-size: 13px;
-  color: #94a3b8;
+.upload-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.upload-footer span {
+  padding: 5px 9px;
+  color: var(--color-brand-2);
+  background: #f5f8fb;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .blank-entry-button {
   width: 100%;
-  padding: 10px 14px;
-  color: #0f2742;
-  background: #fff;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 650;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-
-.blank-entry-button:hover {
-  color: #173a61;
-  background: #f8fafc;
-  border-color: #94a3b8;
 }
 </style>

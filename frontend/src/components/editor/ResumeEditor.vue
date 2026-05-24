@@ -1,10 +1,20 @@
 <template>
   <div class="panel-section" data-testid="resume-editor">
     <div class="section-header">
-      <h3>编辑简历</h3>
-      <button type="button" class="btn-reset" @click="handleReset">重新上传</button>
+      <div>
+        <h3>编辑简历</h3>
+        <p class="section-subtitle">修改字段后，右侧预览会自动更新。</p>
+      </div>
+      <button type="button" class="control-button ghost reset-button btn-reset" @click="handleReset">
+        <RotateCcw class="icon" aria-hidden="true" />
+        重新上传
+      </button>
     </div>
-    <p class="filename">📄 {{ filename }}</p>
+
+    <p class="filename">
+      <FileText class="icon" aria-hidden="true" />
+      {{ filename }}
+    </p>
 
     <div class="field-editor">
       <BasicInfoEditor />
@@ -18,6 +28,7 @@
 </template>
 
 <script setup lang="ts">
+import { FileText, RotateCcw } from 'lucide-vue-next'
 import { useResumeStore } from '../../stores/resume'
 import BasicInfoEditor from './BasicInfoEditor.vue'
 import EducationEditor from './EducationEditor.vue'
@@ -40,189 +51,277 @@ function handleReset() {
 </script>
 
 <style>
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.section-header h3 {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a2e;
-}
-
-.filename {
-  font-size: 12px;
-  color: #64748b;
-  background: #e2e8f0;
-  padding: 6px 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.btn-reset {
-  font-size: 12px;
-  color: #64748b;
-  background: none;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  padding: 3px 10px;
-  cursor: pointer;
-}
-
-.btn-reset:hover {
-  color: #4a6cf5;
-  border-color: #4a6cf5;
-}
-
 .panel-section {
   display: flex;
   flex-direction: column;
+  gap: 14px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.section-header h3 {
+  color: var(--color-ink-strong);
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.section-subtitle {
+  margin-top: 4px;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.reset-button {
+  min-height: 32px;
+  padding: 7px 10px;
+  flex-shrink: 0;
+}
+
+.filename {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
+  min-width: 0;
+  color: var(--color-muted);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  font-size: 12px;
+  font-weight: 750;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.filename .icon {
+  color: var(--color-brand-2);
+  flex-shrink: 0;
 }
 
 .field-editor {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 14px;
 }
 
-.field-editor h4 {
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
-  margin-top: 10px;
+.editor-group {
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.editor-group h4,
+.field-editor > h4 {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: var(--color-ink-strong);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.btn-add {
-  font-size: 11px;
-  background: none;
-  border: none;
-  color: #4a6cf5;
-  cursor: pointer;
-  font-weight: 400;
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
-.btn-add:hover {
-  text-decoration: underline;
+.field-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .field-label {
+  color: var(--color-muted);
   font-size: 11px;
-  color: #94a3b8;
-  margin-top: 6px;
+  font-weight: 800;
+}
+
+.field-input,
+.field-textarea {
+  width: 100%;
+  color: var(--color-ink);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 }
 
 .field-input {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 12px;
-  color: #1a1a2e;
-  background: #fff;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.field-input:focus {
-  border-color: #4a6cf5;
+  min-height: 38px;
+  padding: 8px 10px;
+  font-size: 13px;
 }
 
 .field-textarea {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 12px;
-  color: #1a1a2e;
-  background: #fff;
+  min-height: 86px;
+  padding: 9px 10px;
   resize: vertical;
-  outline: none;
-  font-family: inherit;
-  transition: border-color 0.15s;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
+.field-input::placeholder,
+.field-textarea::placeholder {
+  color: #a1acba;
+}
+
+.field-input:focus,
 .field-textarea:focus {
-  border-color: #4a6cf5;
+  border-color: rgba(31, 77, 115, 0.58);
+  box-shadow: 0 0 0 3px rgba(31, 77, 115, 0.1);
+}
+
+.btn-add,
+.btn-remove,
+.btn-remove-sm,
+.btn-remove-photo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 28px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-add {
+  padding: 5px 8px;
+  color: var(--color-brand-2);
+  background: #fff;
+  border: 1px solid var(--color-border);
+}
+
+.btn-add:hover {
+  color: var(--color-brand);
+  border-color: var(--color-border-strong);
 }
 
 .block-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .btn-remove {
   align-self: flex-end;
-  font-size: 11px;
-  color: #ef4444;
-  background: none;
-  border: none;
-  cursor: pointer;
+  padding: 5px 8px;
+  color: var(--color-danger);
+  background: #fff;
+  border: 1px solid rgba(180, 35, 24, 0.2);
 }
 
-.btn-remove:hover {
-  text-decoration: underline;
+.btn-remove:hover,
+.btn-remove-photo:hover {
+  background: #fff4f2;
+  border-color: rgba(180, 35, 24, 0.36);
 }
 
 .skills-editor {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .skill-row {
   display: flex;
-  gap: 6px;
+  gap: 7px;
   align-items: center;
 }
 
 .btn-remove-sm {
-  background: none;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0 4px;
+  width: 34px;
+  min-width: 34px;
+  color: var(--color-danger);
+  background: #fff;
+  border: 1px solid rgba(180, 35, 24, 0.2);
 }
 
 .photo-upload {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.photo-preview,
+.photo-placeholder {
+  width: 92px;
+  height: 116px;
+  object-fit: cover;
+  background: var(--color-panel-strong);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.photo-placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--color-muted);
+}
+
+.photo-placeholder .icon {
+  width: 24px;
+  height: 24px;
+}
+
+.photo-controls {
   display: flex;
   flex-direction: column;
   gap: 8px;
   align-items: flex-start;
 }
 
-.photo-preview {
-  width: 100px;
-  height: 130px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
+.photo-input-label {
+  position: relative;
+  overflow: hidden;
 }
 
 .photo-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.photo-hint {
+  color: var(--color-muted);
   font-size: 11px;
-  color: #64748b;
+  line-height: 1.5;
 }
 
 .btn-remove-photo {
-  font-size: 11px;
-  color: #ef4444;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
+  padding: 5px 8px;
+  color: var(--color-danger);
+  background: #fff;
+  border: 1px solid rgba(180, 35, 24, 0.2);
 }
 </style>
