@@ -48,16 +48,15 @@
 <script setup lang="ts">
 import { FilePlus2, UploadCloud } from 'lucide-vue-next'
 import { ref } from 'vue'
-import { useToast } from '../../composables/useToast'
 
 const emit = defineEmits<{
   (e: 'file-selected', content: string | File, filename: string): void
   (e: 'blank-selected'): void
+  (e: 'file-error', message: string): void
 }>()
 
 const isDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
-const toast = useToast()
 
 function triggerInput() {
   fileInput.value?.click()
@@ -77,11 +76,15 @@ function handleFileChange(e: Event) {
 function readFile(file: File) {
   const ext = file.name.split('.').pop()?.toLowerCase()
   if (!ext || !['md', 'txt', 'docx', 'pdf'].includes(ext)) {
-    toast.warning('暂不支持该文件格式，请上传 .md / .txt / .docx / .pdf 简历')
+    emit('file-error', '暂不支持该文件格式，请上传 .md / .txt / .docx / .pdf 简历')
+    return
+  }
+  if (file.size === 0) {
+    emit('file-error', '文件内容为空，请上传包含简历内容的文件')
     return
   }
   if (file.size > 5 * 1024 * 1024) {
-    toast.warning('文件过大，请控制在 5MB 以内')
+    emit('file-error', '文件过大，请控制在 5MB 以内')
     return
   }
   if (ext === 'docx' || ext === 'pdf') {
@@ -95,7 +98,7 @@ function readFile(file: File) {
     emit('file-selected', text, file.name)
   }
   reader.onerror = () => {
-    toast.error('文件读取失败，请重试')
+    emit('file-error', '文件读取失败，请重试')
   }
   reader.readAsText(file)
 }

@@ -17,6 +17,7 @@
         <ExternalLink class="icon" aria-hidden="true" />
       </a>
     </div>
+    <p v-if="exportError" class="export-error" data-testid="export-docx-error">{{ exportError }}</p>
   </div>
 </template>
 
@@ -35,9 +36,11 @@ const props = defineProps<{
 const loading = ref(false)
 const docxUrl = ref('')
 const docxFilename = ref('')
+const exportError = ref('')
 const toast = useToast()
 
 async function handleExport() {
+  exportError.value = ''
   loading.value = true
   try {
     revokeGeneratedDocx()
@@ -46,10 +49,15 @@ async function handleExport() {
     docxFilename.value = result.filename
   } catch (err) {
     console.error(err)
-    toast.error('DOCX 生成失败，请重试')
+    showExportError('DOCX 生成失败，请重试')
   } finally {
     loading.value = false
   }
+}
+
+function showExportError(message: string) {
+  exportError.value = message
+  toast.error(message)
 }
 
 function revokeGeneratedDocx() {
@@ -111,6 +119,14 @@ onBeforeUnmount(() => {
 
 .export-result a:hover {
   text-decoration: underline;
+}
+
+.export-error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 11px;
+  font-weight: 750;
+  text-align: right;
 }
 
 .spinning {

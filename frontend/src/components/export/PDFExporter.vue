@@ -17,6 +17,7 @@
         <ExternalLink class="icon" aria-hidden="true" />
       </a>
     </div>
+    <p v-if="exportError" class="export-error" data-testid="export-pdf-error">{{ exportError }}</p>
     <p v-if="pageCount > 1" class="export-note">预计 {{ pageCount }} 页，可继续导出。</p>
   </div>
 </template>
@@ -31,13 +32,18 @@ const props = defineProps<{ getElement: () => HTMLElement | null; filename?: str
 const loading = ref(false)
 const pdfUrl = ref('')
 const pdfFilename = ref('')
+const exportError = ref('')
 const toast = useToast()
 
 const pageCount = computed(() => props.pageCount ?? 1)
 
 async function handleExport() {
   const el = props.getElement()
-  if (!el) return
+  exportError.value = ''
+  if (!el) {
+    showExportError('未找到可导出的简历预览，请刷新后重试')
+    return
+  }
   loading.value = true
   try {
     revokeGeneratedPdf()
@@ -46,10 +52,15 @@ async function handleExport() {
     pdfFilename.value = result.filename
   } catch (err) {
     console.error(err)
-    toast.error('PDF 生成失败，请重试')
+    showExportError('PDF 生成失败，请重试')
   } finally {
     loading.value = false
   }
+}
+
+function showExportError(message: string) {
+  exportError.value = message
+  toast.error(message)
 }
 
 function revokeGeneratedPdf() {
@@ -82,6 +93,14 @@ onBeforeUnmount(() => {
   color: var(--color-warning);
   font-size: 11px;
   font-weight: 700;
+}
+
+.export-error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 11px;
+  font-weight: 750;
+  text-align: right;
 }
 
 .export-result {

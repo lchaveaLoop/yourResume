@@ -28,6 +28,22 @@
 ## 待处理
 
 - 上传、解析、导出错误提示优化。
-- 移动端编辑和预览体验验证。
 - 真实浏览器 PDF 视觉回归。
 - PDF 相关依赖动态加载，降低首屏 bundle 体积。
+
+## PC-only 发布门禁
+
+当前商业化上线目标只覆盖 PC 桌面浏览器，移动端适配不作为发布门禁。上线前必须在 `frontend/` 下通过：
+
+- `npm run test`
+- `npm run typecheck`
+- `npm run typecheck:tests`
+- `npm run build`
+- `npx playwright test --config playwright.config.ts --workers=1`
+
+门禁要求：
+
+- 模板只负责排版和 UI 美化，不改写、截断或派生传入简历内容。
+- 上传、解析、PDF/DOCX 导出失败必须同时显示页面内错误和 toast。
+- 真实 PDF 导出覆盖标准模板、长简历和照片场景。
+- 构建结果保持 PDF/PDF.js/DOCX 相关依赖动态加载，避免首屏主 chunk 继续膨胀。

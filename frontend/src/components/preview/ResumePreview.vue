@@ -4,8 +4,8 @@
       <header class="ats-header">
         <div class="profile-copy">
           <div class="identity-row">
-            <h1>{{ displayName }}</h1>
-            <p>{{ displayRole }}</p>
+            <h1 v-if="resume.name">{{ resume.name }}</h1>
+            <p v-if="resume.targetRole">{{ resume.targetRole }}</p>
           </div>
           <div class="contact-line" v-if="hasContact">
             <span v-if="resume.location">{{ resume.location }}</span>
@@ -34,6 +34,9 @@
           <span class="date">{{ item.duration }}</span>
           <strong>{{ item.company }}</strong>
           <span class="role">{{ item.title }}</span>
+          <ul v-if="item.details.length" class="row-details">
+            <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
+          </ul>
         </div>
       </section>
 
@@ -46,7 +49,7 @@
           </div>
           <p v-if="item.role" class="entry-subtitle">{{ item.role }}</p>
           <ul v-if="item.details.length">
-            <li v-for="(detail, j) in limitedDetails(item.details, 4)" :key="j">{{ detail }}</li>
+            <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
           </ul>
         </div>
       </section>
@@ -64,8 +67,8 @@
     <article v-else-if="template === 'senior'" class="resume-template template-senior">
       <header class="senior-hero">
         <div>
-          <h1>{{ displayName }}</h1>
-          <p>{{ seniorRole }}</p>
+          <h1 v-if="resume.name">{{ resume.name }}</h1>
+          <p v-if="resume.targetRole">{{ resume.targetRole }}</p>
           <div class="contact-line" v-if="hasContact">
             <span v-if="resume.location">{{ resume.location }}</span>
             <span v-if="resume.phone">{{ resume.phone }}</span>
@@ -75,13 +78,6 @@
         <img v-if="resume.photo" :src="resume.photo" class="photo photo-senior" alt="照片" />
       </header>
 
-      <section class="metric-row" v-if="metrics.length">
-        <div v-for="metric in metrics" :key="metric.label" class="metric-card">
-          <strong>{{ metric.value }}</strong>
-          <span>{{ metric.label }}</span>
-        </div>
-      </section>
-
       <div class="senior-grid">
         <main>
           <section v-if="resume.summary" class="section">
@@ -89,7 +85,23 @@
             <p class="summary-text">{{ resume.summary }}</p>
           </section>
 
+          <section v-if="resume.experience.length" class="section">
+            <h2>工作经历</h2>
+            <div v-for="(item, i) in resume.experience" :key="i" class="impact-entry">
+              <div class="impact-rule"></div>
+              <div class="entry-head stacked-head">
+                <strong>{{ item.company }}</strong>
+                <span>{{ item.duration }}</span>
+              </div>
+              <p v-if="item.title" class="entry-subtitle">{{ item.title }}</p>
+              <ul v-if="item.details.length">
+                <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
+              </ul>
+            </div>
+          </section>
+
           <section v-if="resume.projects.length" class="section">
+            <h2>项目经历</h2>
             <div v-for="(item, i) in resume.projects" :key="i" class="impact-entry">
               <div class="impact-rule"></div>
               <div class="entry-head stacked-head">
@@ -98,20 +110,13 @@
               </div>
               <p v-if="item.role" class="entry-subtitle">{{ item.role }}</p>
               <ul v-if="item.details.length">
-                <li v-for="(detail, j) in limitedDetails(item.details, 3)" :key="j">{{ detail }}</li>
+                <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
               </ul>
             </div>
           </section>
         </main>
 
         <aside class="senior-side">
-          <section v-if="capabilities.length" class="side-section">
-            <h2>核心能力</h2>
-            <ul>
-              <li v-for="cap in capabilities" :key="cap">{{ cap }}</li>
-            </ul>
-          </section>
-
           <section v-if="resume.skills.length" class="side-section">
             <h2>技术栈</h2>
             <div class="plain-list">
@@ -135,8 +140,8 @@
       <header class="long-header">
         <div class="profile-copy">
           <div class="identity-row">
-            <h1>{{ displayName }}</h1>
-            <p>{{ displayRole }}</p>
+            <h1 v-if="resume.name">{{ resume.name }}</h1>
+            <p v-if="resume.targetRole">{{ resume.targetRole }}</p>
           </div>
           <div class="contact-line" v-if="hasContact">
             <span v-if="resume.location">{{ resume.location }}</span>
@@ -199,8 +204,8 @@
       <header class="mk-hero">
         <div class="mk-profile">
           <p class="template-kicker">Business Resume</p>
-          <h1>{{ displayName }}</h1>
-          <p class="target-role">{{ resume.targetRole || '市场商务岗位' }}</p>
+          <h1 v-if="resume.name">{{ resume.name }}</h1>
+          <p v-if="resume.targetRole" class="target-role">{{ resume.targetRole }}</p>
         </div>
         <img v-if="resume.photo" :src="resume.photo" class="photo mk-avatar" alt="照片" />
       </header>
@@ -237,9 +242,13 @@
           <h2>项目成果</h2>
           <div v-for="(item, i) in resume.projects" :key="i" class="mk-compact-entry">
             <strong>{{ item.name }}</strong>
-            <span>{{ item.role }} · {{ item.duration }}</span>
+            <span v-if="item.role || item.duration">
+              <template v-if="item.role">{{ item.role }}</template>
+              <template v-if="item.role && item.duration"> · </template>
+              <template v-if="item.duration">{{ item.duration }}</template>
+            </span>
             <ul v-if="item.details.length">
-              <li v-for="(d, j) in limitedDetails(item.details, 3)" :key="j">{{ d }}</li>
+              <li v-for="(d, j) in item.details" :key="j">{{ d }}</li>
             </ul>
           </div>
         </section>
@@ -280,42 +289,9 @@ defineExpose({ el: () => resumeRef.value })
 
 const resumeRef = ref<HTMLElement | null>(null)
 
-const displayName = computed(() => props.resume.name || '姓名')
-const displayRole = computed(() => props.resume.targetRole || '目标岗位')
-const seniorRole = computed(() => {
-  const role = props.resume.targetRole || 'C/C++ 开发工程师'
-  return role.includes('高级') ? role : `高级 ${role}`
-})
 const hasContact = computed(() =>
   props.resume.email || props.resume.phone || props.resume.location
 )
-
-const metrics = computed(() => {
-  const text = [
-    props.resume.summary,
-    ...props.resume.projects.flatMap(item => item.details),
-    ...props.resume.experience.flatMap(item => item.details),
-  ].join(' ')
-  const values = Array.from(new Set(text.match(/\d+(?:\.\d+)?%?\+?/g) ?? []))
-  const labels = ['关键成果', '性能改善', '交付影响']
-  return values.slice(0, 3).map((value, index) => ({ value, label: labels[index] }))
-})
-
-const capabilities = computed(() => {
-  const preferred = ['架构', '数据', '跨平台', 'Web', '集成', '算法', '性能', '交付']
-  const text = props.resume.skills.join(' ')
-  const fromSkills = props.resume.skills.filter(skill =>
-    preferred.some(key => skill.toLowerCase().includes(key.toLowerCase()))
-  )
-  const fallback = preferred
-    .filter(key => text.includes(key))
-    .map(key => `${key}能力`)
-  return Array.from(new Set([...fromSkills, ...fallback, ...props.resume.skills])).slice(0, 6)
-})
-
-function limitedDetails(details: string[], limit: number) {
-  return details.slice(0, limit)
-}
 </script>
 
 <style scoped>
@@ -497,6 +473,11 @@ li {
 .compact-row {
   grid-template-columns: 135px 1.1fr 1.6fr;
   align-items: baseline;
+}
+
+.row-details {
+  grid-column: 2 / -1;
+  margin-top: 4px;
 }
 
 /* Scheme 1: ATS single column */

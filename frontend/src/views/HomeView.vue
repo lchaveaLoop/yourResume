@@ -46,6 +46,7 @@
             v-if="!showEditor"
             @file-selected="handleFileSelected"
             @blank-selected="handleBlankSelected"
+            @file-error="handleUploadError"
           />
           <p v-if="uploadError" class="upload-error" data-testid="resume-upload-error">
             {{ uploadError }}
@@ -200,6 +201,11 @@ function handleBlankSelected() {
   filename.value = '新建简历'
   editingStarted.value = true
   clearPersistedDraft()
+}
+
+function handleUploadError(message: string) {
+  uploadError.value = message
+  toast.warning(message)
 }
 
 function handleEditorReset() {

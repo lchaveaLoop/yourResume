@@ -1,4 +1,3 @@
-import JSZip from 'jszip'
 import type { ResumeData } from '../types/resume'
 import { parsePlainTextResume } from './plain-text-resume'
 
@@ -6,6 +5,7 @@ import { parsePlainTextResume } from './plain-text-resume'
  * 解析 .docx 文件，返回结构化简历数据
  */
 export async function parseDocx(file: File): Promise<ResumeData> {
+  const { default: JSZip } = await import('jszip')
   const buffer = await file.arrayBuffer()
   const zip = await JSZip.loadAsync(buffer)
   const xml = await zip.file('word/document.xml')?.async('string')

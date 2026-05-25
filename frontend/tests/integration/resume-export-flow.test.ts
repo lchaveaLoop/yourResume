@@ -58,6 +58,50 @@ describe('resume export flow', () => {
     wrapper.unmount()
   })
 
+  it('shows a visible PDF export error and allows retry', async () => {
+    vi.mocked(exportToPDF)
+      .mockRejectedValueOnce(new Error('render failed'))
+      .mockResolvedValueOnce({
+        blob: new Blob(['pdf'], { type: 'application/pdf' }),
+        filename: 'Ada_Lovelace_resume.pdf',
+        url: 'blob:test-pdf-retry',
+      })
+    const wrapper = mount(ExportActions, {
+      props: {
+        getElement: () => document.createElement('article'),
+        filename: 'Ada_Lovelace_resume.pdf',
+        pageCount: 1,
+        resume: {
+          name: 'Ada Lovelace',
+          email: 'ada@example.com',
+          phone: '',
+          location: '',
+          targetRole: 'Analyst',
+          summary: '',
+          education: [],
+          experience: [],
+          skills: [],
+          projects: [],
+        },
+      },
+      attachTo: document.body,
+    })
+
+    await wrapper.get('[data-testid="export-pdf-button"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('[data-testid="export-pdf-error"]').text()).toContain('PDF 生成失败，请重试')
+    expect(wrapper.get('[data-testid="export-pdf-button"]').attributes('disabled')).toBeUndefined()
+
+    await wrapper.get('[data-testid="export-pdf-button"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="export-pdf-error"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('PDF 已生成')
+
+    wrapper.unmount()
+  })
+
   it('wires DOCX export to the resume data', async () => {
     const wrapper = mount(ExportActions, {
       props: {
@@ -85,6 +129,50 @@ describe('resume export flow', () => {
 
     expect(exportToDOCX).toHaveBeenCalledTimes(1)
     expect(exportToDOCX).toHaveBeenCalledWith(expect.objectContaining({ name: 'Ada Lovelace' }), 'Ada_Lovelace_resume.pdf')
+
+    wrapper.unmount()
+  })
+
+  it('shows a visible DOCX export error and allows retry', async () => {
+    vi.mocked(exportToDOCX)
+      .mockRejectedValueOnce(new Error('zip failed'))
+      .mockResolvedValueOnce({
+        blob: new Blob(['docx'], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }),
+        filename: 'Ada_Lovelace_resume.docx',
+        url: 'blob:test-docx-retry',
+      })
+    const wrapper = mount(ExportActions, {
+      props: {
+        getElement: () => document.createElement('article'),
+        filename: 'Ada_Lovelace_resume.pdf',
+        pageCount: 1,
+        resume: {
+          name: 'Ada Lovelace',
+          email: 'ada@example.com',
+          phone: '',
+          location: '',
+          targetRole: 'Analyst',
+          summary: '',
+          education: [],
+          experience: [],
+          skills: [],
+          projects: [],
+        },
+      },
+      attachTo: document.body,
+    })
+
+    await wrapper.get('[data-testid="export-docx-button"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('[data-testid="export-docx-error"]').text()).toContain('DOCX 生成失败，请重试')
+    expect(wrapper.get('[data-testid="export-docx-button"]').attributes('disabled')).toBeUndefined()
+
+    await wrapper.get('[data-testid="export-docx-button"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="export-docx-error"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('DOCX 已生成')
 
     wrapper.unmount()
   })

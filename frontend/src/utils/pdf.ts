@@ -1,6 +1,3 @@
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
-
 export interface PdfPageInfo {
   pageCount: number
   pageHeightPx: number
@@ -40,6 +37,10 @@ function firstFinitePositive(...values: number[]) {
  */
 export async function exportToPDF(element: HTMLElement, filename = 'resume.pdf'): Promise<PdfExportResult> {
   await waitForRenderAssets(element)
+  const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+    import('html2canvas'),
+    import('jspdf'),
+  ])
 
   const canvas = await html2canvas(element, {
     scale: Math.min(3, Math.max(2, window.devicePixelRatio || 2)),

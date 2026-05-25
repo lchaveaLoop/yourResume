@@ -1,4 +1,3 @@
-import JSZip from 'jszip'
 import type { ResumeData } from '../types/resume'
 import { normalizeResume } from './resume-normalizer'
 
@@ -32,6 +31,7 @@ export async function exportToDOCX(
 }
 
 export async function createDocxBlob(resume: ResumeData): Promise<Blob> {
+  const { default: JSZip } = await import('jszip')
   const zip = new JSZip()
   const normalized = normalizeResume(resume)
 

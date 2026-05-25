@@ -7,13 +7,13 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://127.0.0.1:6173',
     acceptDownloads: true,
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'npx vite --port 5173 --strictPort',
-    url: 'http://localhost:5173',
+    command: 'npx vite --host 127.0.0.1 --port 6173 --strictPort',
+    url: 'http://127.0.0.1:6173',
     reuseExistingServer: !process.env.CI,
   },
   projects: [
