@@ -18,7 +18,7 @@ describe('draft adapter', () => {
       skills: ['Vue', '', ' TypeScript '],
     })
 
-    expect(saveDraft(resume, storage, { template: 'long', templateLocked: true })).toBe(true)
+    expect(saveDraft(resume, storage, { template: 'finance', templateLocked: true })).toBe(true)
 
     const raw = storage.getItem(RESUME_DRAFT_STORAGE_KEY)
     expect(raw).toBeTruthy()
@@ -28,7 +28,7 @@ describe('draft adapter', () => {
     expect(typeof parsed.savedAt).toBe('string')
     expect(parsed.resume.name).toBe('林一')
     expect(parsed.resume.skills).toEqual(['Vue', 'TypeScript'])
-    expect(parsed.template).toBe('long')
+    expect(parsed.template).toBe('finance')
     expect(parsed.templateLocked).toBe(true)
   })
 
@@ -55,6 +55,22 @@ describe('draft adapter', () => {
     expect(draft?.resume.name).toBe('Ada')
     expect(draft?.resume.experience[0].details).toEqual(['设计计算流程', '验证输出'])
     expect(draft?.resume.skills).toEqual(['Math'])
+  })
+
+  it('maps legacy template metadata to the new template set', () => {
+    const storage = createMemoryStorage()
+    storage.setItem(RESUME_DRAFT_STORAGE_KEY, JSON.stringify({
+      version: RESUME_DRAFT_VERSION,
+      savedAt: '2026-05-16T00:00:00.000Z',
+      template: 'senior',
+      templateLocked: true,
+      resume: createTestResume({ name: '旧模板草稿' }),
+    }))
+
+    const draft = loadDraftEnvelope(storage)
+
+    expect(draft?.template).toBe('tech')
+    expect(draft?.templateLocked).toBe(true)
   })
 
   it('supports legacy raw resume JSON payloads', () => {

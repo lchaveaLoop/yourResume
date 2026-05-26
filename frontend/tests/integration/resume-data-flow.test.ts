@@ -21,7 +21,7 @@ describe('resume data flow', () => {
 
     expect(store.data).toEqual(normalized)
     expect(store.data.experience[0].detailsRaw).toBe('负责 Vue 组件库建设\n将核心页面首屏时间降低 35%')
-    expect(store.template).toBe('ats')
+    expect(store.template).toBe('tech')
   })
 
   it('preserves longer resume lists and details', () => {

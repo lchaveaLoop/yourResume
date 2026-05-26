@@ -58,7 +58,7 @@ describe('ResumeEditor component', () => {
 
     expect(store.data.name).toBe('')
     expect(store.data.experience).toEqual([])
-    expect(store.template).toBe('ats')
+    expect(store.template).toBe('base')
     expect(store.templateLocked).toBe(false)
   })
 })

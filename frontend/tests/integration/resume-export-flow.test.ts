@@ -50,7 +50,7 @@ describe('resume export flow', () => {
     })
 
     await wrapper.get('[data-testid="export-pdf-button"]').trigger('click')
-    await flushPromises()
+    await flushExportTask()
 
     expect(exportToPDF).toHaveBeenCalledTimes(1)
     expect(exportToPDF).toHaveBeenCalledWith(previewElement, 'Ada_Lovelace_resume.pdf')
@@ -88,13 +88,13 @@ describe('resume export flow', () => {
     })
 
     await wrapper.get('[data-testid="export-pdf-button"]').trigger('click')
-    await flushPromises()
+    await flushExportTask()
 
     expect(wrapper.get('[data-testid="export-pdf-error"]').text()).toContain('PDF 生成失败，请重试')
     expect(wrapper.get('[data-testid="export-pdf-button"]').attributes('disabled')).toBeUndefined()
 
     await wrapper.get('[data-testid="export-pdf-button"]').trigger('click')
-    await flushPromises()
+    await flushExportTask()
 
     expect(wrapper.find('[data-testid="export-pdf-error"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('PDF 已生成')
@@ -177,3 +177,8 @@ describe('resume export flow', () => {
     wrapper.unmount()
   })
 })
+
+async function flushExportTask() {
+  await new Promise(resolve => setTimeout(resolve, 0))
+  await flushPromises()
+}

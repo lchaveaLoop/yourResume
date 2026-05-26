@@ -35,7 +35,9 @@ export interface ResumeData {
   projects: Project[]
 }
 
-export type CareerTemplate = 'ats' | 'senior' | 'long' | 'marketing'
+export type CareerTemplate = 'base' | 'tech' | 'product' | 'marketing' | 'finance' | 'education'
+export type LegacyCareerTemplate = 'ats' | 'senior' | 'long'
+export type AnyCareerTemplate = CareerTemplate | LegacyCareerTemplate
 
 export const defaultResume: ResumeData = {
   name: '',

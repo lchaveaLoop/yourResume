@@ -46,6 +46,7 @@ async function handleExport() {
   }
   loading.value = true
   try {
+    await waitForNextTask()
     revokeGeneratedPdf()
     const result = await exportToPDF(el, props.filename || '简历.pdf')
     pdfUrl.value = result.url
@@ -61,6 +62,10 @@ async function handleExport() {
 function showExportError(message: string) {
   exportError.value = message
   toast.error(message)
+}
+
+function waitForNextTask() {
+  return new Promise(resolve => window.setTimeout(resolve, 0))
 }
 
 function revokeGeneratedPdf() {

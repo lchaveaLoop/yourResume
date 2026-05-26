@@ -27,10 +27,10 @@ describe('resume store', () => {
   it('does not override a manually locked template when target role changes', () => {
     const store = useResumeStore()
 
-    store.setTemplate('long')
+    store.setTemplate('finance')
     store.updateField('targetRole', '市场经理')
 
-    expect(store.template).toBe('long')
+    expect(store.template).toBe('finance')
     expect(store.templateLocked).toBe(true)
   })
 
@@ -43,12 +43,12 @@ describe('resume store', () => {
     }, 'senior', true)
 
     expect(store.data.name).toBe('林一')
-    expect(store.template).toBe('senior')
+    expect(store.template).toBe('tech')
     expect(store.templateLocked).toBe(true)
 
     store.updateField('targetRole', '市场品牌经理')
 
-    expect(store.template).toBe('senior')
+    expect(store.template).toBe('tech')
   })
 
   it('infers template for drafts without locked template metadata', () => {

@@ -4,7 +4,7 @@ import ResumePreview from '../../src/components/preview/ResumePreview.vue'
 import type { CareerTemplate } from '../../src/types/resume'
 import { createTestResume } from '../helpers/create-test-resume'
 
-const templates: CareerTemplate[] = ['ats', 'senior', 'long', 'marketing']
+const templates: CareerTemplate[] = ['base', 'tech', 'product', 'marketing', 'finance', 'education']
 
 describe('ResumePreview template content rendering', () => {
   it.each(templates)('renders incoming resume content without rewriting it in %s template', (template) => {
@@ -60,7 +60,7 @@ describe('ResumePreview template content rendering', () => {
     const wrapper = mount(ResumePreview, {
       props: {
         resume,
-        template: 'ats',
+        template: 'base',
       },
     })
     const text = wrapper.text()

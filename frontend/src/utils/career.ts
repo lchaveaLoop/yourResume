@@ -40,6 +40,24 @@ const itKeywords = [
   '程序员',
 ]
 
+const productKeywords = [
+  '产品',
+  '产品经理',
+  '用户研究',
+  '需求',
+  '增长',
+  '转化',
+  '数据分析',
+  '原型',
+  'roadmap',
+  'prd',
+  'ab测试',
+  'a/b',
+  '体验',
+  '策略',
+  '用户',
+]
+
 const marketingKeywords = [
   '市场',
   '营销',
@@ -61,6 +79,43 @@ const marketingKeywords = [
   '用户增长',
   '市场经理',
   '品牌经理',
+]
+
+const financeKeywords = [
+  '金融',
+  '银行',
+  '证券',
+  '基金',
+  '投研',
+  '风控',
+  '审计',
+  '财务',
+  '会计',
+  '税务',
+  '估值',
+  '投资',
+  '资产',
+  '合规',
+  'cfa',
+  'cpa',
+]
+
+const educationKeywords = [
+  '教育',
+  '教师',
+  '教研',
+  '课程',
+  '培训',
+  '教学',
+  '学术',
+  '研究',
+  '论文',
+  '课题',
+  '导师',
+  '班主任',
+  '学生',
+  '高校',
+  '讲师',
 ]
 
 export function extractTargetRoleFromLine(line: string): string {
@@ -95,10 +150,16 @@ export function inferCareerTemplate(resume: ResumeData): CareerTemplate {
     .join(' ')
     .toLowerCase()
 
-  const itScore = scoreKeywords(weightedText, itKeywords)
-  const marketingScore = scoreKeywords(weightedText, marketingKeywords)
+  const scores: Array<{ template: CareerTemplate; score: number }> = [
+    { template: 'tech', score: scoreKeywords(weightedText, itKeywords) },
+    { template: 'product', score: scoreKeywords(weightedText, productKeywords) },
+    { template: 'marketing', score: scoreKeywords(weightedText, marketingKeywords) },
+    { template: 'finance', score: scoreKeywords(weightedText, financeKeywords) },
+    { template: 'education', score: scoreKeywords(weightedText, educationKeywords) },
+  ]
 
-  return marketingScore > itScore ? 'marketing' : 'ats'
+  const best = scores.reduce((current, next) => next.score > current.score ? next : current)
+  return best.score > 0 ? best.template : 'base'
 }
 
 function normalizeTargetRoleLine(line: string): string {

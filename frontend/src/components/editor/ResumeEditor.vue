@@ -111,11 +111,12 @@ function handleReset() {
 }
 
 .editor-group {
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.76);
+  padding: 15px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 252, 255, 0.9));
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.055);
 }
 
 .editor-group h4,
@@ -154,7 +155,7 @@ function handleReset() {
 .field-textarea {
   width: 100%;
   color: var(--color-ink);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   outline: none;
@@ -226,9 +227,9 @@ function handleReset() {
   gap: 8px;
   margin-top: 8px;
   padding: 10px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .btn-remove {

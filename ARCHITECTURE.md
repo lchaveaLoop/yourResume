@@ -93,8 +93,8 @@ yourResume/
 | `career.ts` | 识别目标岗位、推断职业模板 |
 | `resume.ts` store | 保存简历数据、当前模板和模板锁定状态 |
 | `HomeView.vue` | 组织上传、编辑、预览、页数估算与照片上传 |
-| `TemplateSwitcher.vue` | 切换 ATS / 高级工程师 / 长简历 / 市场商务模板 |
-| `ResumePreview.vue` | 根据 `ResumeData` 和模板渲染 A4 简历 |
+| `TemplateSwitcher.vue` | 切换通用基础、技术研发、产品增长、市场品牌、金融专业、教育学术模板 |
+| `ResumePreview.vue` | 基于统一骨架和模板皮肤渲染 A4 简历 |
 | `pdf.ts` | 等待字体/图片资源后，将 DOM 导出为 PDF |
 | `PDFExporter.vue` | 管理导出按钮、生成状态、下载链接和预览链接 |
 

@@ -1,114 +1,53 @@
 <template>
   <div class="resume-preview" data-testid="resume-preview" ref="resumeRef">
-    <article v-if="template === 'ats'" class="resume-template template-ats">
-      <header class="ats-header">
-        <div class="profile-copy">
-          <div class="identity-row">
-            <h1 v-if="resume.name">{{ resume.name }}</h1>
-            <p v-if="resume.targetRole">{{ resume.targetRole }}</p>
-          </div>
-          <div class="contact-line" v-if="hasContact">
-            <span v-if="resume.location">{{ resume.location }}</span>
-            <span v-if="resume.phone">{{ resume.phone }}</span>
-            <span v-if="resume.email">{{ resume.email }}</span>
-          </div>
-        </div>
-        <img v-if="resume.photo" :src="resume.photo" class="photo photo-ats" alt="照片" />
-      </header>
-
-      <section v-if="resume.summary" class="section">
-        <h2>职业摘要</h2>
-        <p class="summary-text">{{ resume.summary }}</p>
-      </section>
-
-      <section v-if="resume.skills.length" class="section">
-        <h2>核心技能</h2>
-        <div class="skill-pills">
-          <span v-for="(skill, i) in resume.skills" :key="i">{{ skill }}</span>
-        </div>
-      </section>
-
-      <section v-if="resume.experience.length" class="section">
-        <h2>工作经历</h2>
-        <div v-for="(item, i) in resume.experience" :key="i" class="timeline-row compact-row">
-          <span class="date">{{ item.duration }}</span>
-          <strong>{{ item.company }}</strong>
-          <span class="role">{{ item.title }}</span>
-          <ul v-if="item.details.length" class="row-details">
-            <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
-          </ul>
-        </div>
-      </section>
-
-      <section v-if="resume.projects.length" class="section">
-        <h2>项目经历</h2>
-        <div v-for="(item, i) in resume.projects" :key="i" class="entry">
-          <div class="entry-head">
-            <strong>{{ item.name }}</strong>
-            <span>{{ item.duration }}</span>
-          </div>
-          <p v-if="item.role" class="entry-subtitle">{{ item.role }}</p>
-          <ul v-if="item.details.length">
-            <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
-          </ul>
-        </div>
-      </section>
-
-      <section v-if="resume.education.length" class="section">
-        <h2>教育经历</h2>
-        <div v-for="(item, i) in resume.education" :key="i" class="timeline-row compact-row">
-          <span class="date">{{ item.duration }}</span>
-          <strong>{{ item.school }}</strong>
-          <span class="role">{{ item.degree }}</span>
-        </div>
-      </section>
-    </article>
-
-    <article v-else-if="template === 'senior'" class="resume-template template-senior">
-      <header class="senior-hero">
-        <div>
+    <article class="resume-template" :class="`template-${currentTemplate}`">
+      <header class="resume-header">
+        <div class="identity-block">
+          <p class="template-rule" aria-hidden="true"></p>
           <h1 v-if="resume.name">{{ resume.name }}</h1>
-          <p v-if="resume.targetRole">{{ resume.targetRole }}</p>
+          <p v-if="resume.targetRole" class="target-role">{{ resume.targetRole }}</p>
           <div class="contact-line" v-if="hasContact">
             <span v-if="resume.location">{{ resume.location }}</span>
             <span v-if="resume.phone">{{ resume.phone }}</span>
             <span v-if="resume.email">{{ resume.email }}</span>
           </div>
         </div>
-        <img v-if="resume.photo" :src="resume.photo" class="photo photo-senior" alt="照片" />
+        <img v-if="resume.photo" :src="resume.photo" class="photo" alt="照片" />
       </header>
 
-      <div class="senior-grid">
-        <main>
-          <section v-if="resume.summary" class="section">
-            <h2>工程影响力摘要</h2>
+      <div class="resume-body">
+        <main class="resume-main">
+          <section v-if="resume.summary" class="resume-section section-summary">
+            <h2>职业摘要</h2>
             <p class="summary-text">{{ resume.summary }}</p>
           </section>
 
-          <section v-if="resume.experience.length" class="section">
+          <section v-if="resume.experience.length" class="resume-section">
             <h2>工作经历</h2>
-            <div v-for="(item, i) in resume.experience" :key="i" class="impact-entry">
-              <div class="impact-rule"></div>
-              <div class="entry-head stacked-head">
-                <strong>{{ item.company }}</strong>
-                <span>{{ item.duration }}</span>
+            <div v-for="(item, i) in resume.experience" :key="i" class="resume-entry">
+              <div class="entry-head">
+                <div>
+                  <strong>{{ item.company }}</strong>
+                  <p v-if="item.title" class="entry-subtitle">{{ item.title }}</p>
+                </div>
+                <span v-if="item.duration" class="entry-date">{{ item.duration }}</span>
               </div>
-              <p v-if="item.title" class="entry-subtitle">{{ item.title }}</p>
               <ul v-if="item.details.length">
                 <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
               </ul>
             </div>
           </section>
 
-          <section v-if="resume.projects.length" class="section">
+          <section v-if="resume.projects.length" class="resume-section">
             <h2>项目经历</h2>
-            <div v-for="(item, i) in resume.projects" :key="i" class="impact-entry">
-              <div class="impact-rule"></div>
-              <div class="entry-head stacked-head">
-                <strong>{{ item.name }}</strong>
-                <span>{{ item.duration }}</span>
+            <div v-for="(item, i) in resume.projects" :key="i" class="resume-entry">
+              <div class="entry-head">
+                <div>
+                  <strong>{{ item.name }}</strong>
+                  <p v-if="item.role" class="entry-subtitle">{{ item.role }}</p>
+                </div>
+                <span v-if="item.duration" class="entry-date">{{ item.duration }}</span>
               </div>
-              <p v-if="item.role" class="entry-subtitle">{{ item.role }}</p>
               <ul v-if="item.details.length">
                 <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
               </ul>
@@ -116,157 +55,20 @@
           </section>
         </main>
 
-        <aside class="senior-side">
-          <section v-if="resume.skills.length" class="side-section">
-            <h2>技术栈</h2>
-            <div class="plain-list">
+        <aside class="resume-side">
+          <section v-if="resume.skills.length" class="resume-section side-section">
+            <h2>核心技能</h2>
+            <div class="skill-list">
               <span v-for="(skill, i) in resume.skills" :key="i">{{ skill }}</span>
             </div>
           </section>
 
-          <section v-if="resume.education.length" class="side-section">
-            <h2>教育</h2>
-            <div v-for="(item, i) in resume.education" :key="i" class="side-item">
+          <section v-if="resume.education.length" class="resume-section side-section">
+            <h2>教育经历</h2>
+            <div v-for="(item, i) in resume.education" :key="i" class="education-entry">
               <strong>{{ item.school }}</strong>
-              <span>{{ item.degree }}</span>
-              <small>{{ item.duration }}</small>
-            </div>
-          </section>
-        </aside>
-      </div>
-    </article>
-
-    <article v-else-if="template === 'long'" class="resume-template template-long">
-      <header class="long-header">
-        <div class="profile-copy">
-          <div class="identity-row">
-            <h1 v-if="resume.name">{{ resume.name }}</h1>
-            <p v-if="resume.targetRole">{{ resume.targetRole }}</p>
-          </div>
-          <div class="contact-line" v-if="hasContact">
-            <span v-if="resume.location">{{ resume.location }}</span>
-            <span v-if="resume.phone">{{ resume.phone }}</span>
-            <span v-if="resume.email">{{ resume.email }}</span>
-          </div>
-        </div>
-        <img v-if="resume.photo" :src="resume.photo" class="photo photo-long" alt="照片" />
-      </header>
-
-      <section v-if="resume.summary" class="section">
-        <h2>职业摘要</h2>
-        <p class="summary-text">{{ resume.summary }}</p>
-      </section>
-
-      <section v-if="resume.skills.length" class="section">
-        <h2>核心技能</h2>
-        <p class="inline-skills">{{ resume.skills.join(' · ') }}</p>
-      </section>
-
-      <section v-if="resume.projects.length" class="section">
-        <h2>项目经历</h2>
-        <div v-for="(item, i) in resume.projects" :key="i" class="entry long-entry">
-          <div class="entry-head">
-            <strong>{{ item.name }}</strong>
-            <span>{{ item.duration }}</span>
-          </div>
-          <p v-if="item.role" class="entry-subtitle">{{ item.role }}</p>
-          <ul v-if="item.details.length">
-            <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
-          </ul>
-        </div>
-      </section>
-
-      <section v-if="resume.experience.length" class="section">
-        <h2>工作经历</h2>
-        <div v-for="(item, i) in resume.experience" :key="i" class="timeline-row">
-          <span class="date">{{ item.duration }}</span>
-          <div>
-            <strong>{{ item.company }}</strong>
-            <p>{{ item.title }}</p>
-            <ul v-if="item.details.length">
-              <li v-for="(detail, j) in item.details" :key="j">{{ detail }}</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <section v-if="resume.education.length" class="section">
-        <h2>教育经历</h2>
-        <div v-for="(item, i) in resume.education" :key="i" class="timeline-row compact-row">
-          <span class="date">{{ item.duration }}</span>
-          <strong>{{ item.school }}</strong>
-          <span class="role">{{ item.degree }}</span>
-        </div>
-      </section>
-    </article>
-
-    <article v-else class="resume-template template-marketing">
-      <header class="mk-hero">
-        <div class="mk-profile">
-          <p class="template-kicker">Business Resume</p>
-          <h1 v-if="resume.name">{{ resume.name }}</h1>
-          <p v-if="resume.targetRole" class="target-role">{{ resume.targetRole }}</p>
-        </div>
-        <img v-if="resume.photo" :src="resume.photo" class="photo mk-avatar" alt="照片" />
-      </header>
-
-      <div class="mk-contact" v-if="hasContact">
-        <span v-if="resume.email">{{ resume.email }}</span>
-        <span v-if="resume.phone">{{ resume.phone }}</span>
-        <span v-if="resume.location">{{ resume.location }}</span>
-      </div>
-
-      <section v-if="resume.summary" class="mk-summary">
-        <h2>职业摘要</h2>
-        <p>{{ resume.summary }}</p>
-      </section>
-
-      <section v-if="resume.experience.length" class="mk-section">
-        <h2>工作经历</h2>
-        <div v-for="(item, i) in resume.experience" :key="i" class="mk-entry">
-          <div class="mk-entry-head">
-            <div>
-              <strong>{{ item.company }}</strong>
-              <p>{{ item.title }}</p>
-            </div>
-            <span>{{ item.duration }}</span>
-          </div>
-          <ul v-if="item.details.length">
-            <li v-for="(d, j) in item.details" :key="j">{{ d }}</li>
-          </ul>
-        </div>
-      </section>
-
-      <div class="mk-two-col">
-        <section v-if="resume.projects.length" class="mk-section">
-          <h2>项目成果</h2>
-          <div v-for="(item, i) in resume.projects" :key="i" class="mk-compact-entry">
-            <strong>{{ item.name }}</strong>
-            <span v-if="item.role || item.duration">
-              <template v-if="item.role">{{ item.role }}</template>
-              <template v-if="item.role && item.duration"> · </template>
-              <template v-if="item.duration">{{ item.duration }}</template>
-            </span>
-            <ul v-if="item.details.length">
-              <li v-for="(d, j) in item.details" :key="j">{{ d }}</li>
-            </ul>
-          </div>
-        </section>
-
-        <aside>
-          <section v-if="resume.skills.length" class="mk-section">
-            <h2>核心能力</h2>
-            <div class="mk-skills">
-              <span v-for="(skill, i) in resume.skills" :key="i">{{ skill }}</span>
-            </div>
-          </section>
-
-          <section v-if="resume.education.length" class="mk-section">
-            <h2>教育背景</h2>
-            <div v-for="(item, i) in resume.education" :key="i" class="mk-edu">
-              <strong>{{ item.school }}</strong>
-              <span>{{ item.degree }}</span>
-              <small>{{ item.duration }}</small>
+              <span v-if="item.degree">{{ item.degree }}</span>
+              <small v-if="item.duration">{{ item.duration }}</small>
               <small v-if="item.details">{{ item.details }}</small>
             </div>
           </section>
@@ -279,6 +81,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { CareerTemplate, ResumeData } from '../../types/resume'
+import { normalizeCareerTemplate } from '../../utils/templates'
 
 const props = defineProps<{
   resume: ResumeData
@@ -289,6 +92,7 @@ defineExpose({ el: () => resumeRef.value })
 
 const resumeRef = ref<HTMLElement | null>(null)
 
+const currentTemplate = computed(() => normalizeCareerTemplate(props.template) ?? 'base')
 const hasContact = computed(() =>
   props.resume.email || props.resume.phone || props.resume.location
 )
@@ -298,33 +102,137 @@ const hasContact = computed(() =>
 .resume-preview {
   --resume-width: 210mm;
   --resume-height: 297mm;
-  --ink: #172033;
-  --muted: #5f6b7a;
-  --blue: #174a78;
-  --blue-dark: #142f4a;
-  --blue-soft: #eef5fb;
-  --rule: #d3dce7;
-  --paper: #ffffff;
-  --business: #2f2b3f;
-  --brass: #9a6a34;
-  --business-paper: #fffdf8;
-
   width: var(--resume-width);
   min-height: var(--resume-height);
-  background: var(--paper);
-  color: var(--ink);
-  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.18);
+  min-height: 1123px;
+  color: #172033;
+  background: #fff !important;
   border-radius: 2px;
+  box-shadow: 0 22px 70px rgba(15, 23, 42, 0.2);
   overflow: hidden;
-  line-height: 1.48;
+}
+
+.resume-preview.pdf-exporting {
+  box-shadow: none;
+}
+
+.resume-preview.pdf-exporting .resume-template,
+.resume-preview.pdf-exporting .template-marketing,
+.resume-preview.pdf-exporting .template-education {
+  background: #fff;
+}
+
+.resume-preview.pdf-exporting .resume-side,
+.resume-preview.pdf-exporting .template-product .resume-entry,
+.resume-preview.pdf-exporting .template-base .section-summary {
+  background: #fff;
 }
 
 .resume-template {
+  --resume-ink: #172033;
+  --resume-muted: #5f6b7a;
+  --resume-faint: #eef1f5;
+  --resume-line: #d8e0ea;
+  --resume-line-soft: #e8edf3;
+  --resume-accent: #1f4d73;
+  --resume-accent-strong: #10263f;
+  --resume-accent-soft: #eef5fb;
+  --resume-accent-border: #c9d9e8;
+  --resume-paper: #ffffff;
+  --resume-side: #f7f9fc;
+  --resume-font-body: var(--font-sans);
+  --resume-font-display: var(--font-sans);
   min-height: var(--resume-height);
-  padding: 16mm 18mm;
-  font-size: 10.5px;
+  min-height: 1123px;
+  padding: 16mm 17mm;
+  color: var(--resume-ink);
+  background:
+    linear-gradient(90deg, var(--resume-accent) 0 3.2mm, transparent 3.2mm),
+    var(--resume-paper);
+  font-family: var(--resume-font-body);
+  font-size: 10.7px;
+  line-height: 1.52;
   overflow-wrap: anywhere;
-  background: #fff;
+}
+
+.template-base {
+  --resume-ink: #151923;
+  --resume-muted: #596270;
+  --resume-line: #d7dce4;
+  --resume-line-soft: #e7ebf0;
+  --resume-accent: #2e3440;
+  --resume-accent-strong: #151923;
+  --resume-accent-soft: #f2f4f7;
+  --resume-accent-border: #d7dce4;
+  --resume-side: #f7f8fa;
+  padding-left: 18mm;
+  background: var(--resume-paper);
+}
+
+.template-tech {
+  --resume-ink: #102033;
+  --resume-muted: #587083;
+  --resume-line: #c7dcea;
+  --resume-line-soft: #e3f0f6;
+  --resume-accent: #0f6f8f;
+  --resume-accent-strong: #0c3344;
+  --resume-accent-soft: #eaf7fb;
+  --resume-accent-border: #c5e2ea;
+  --resume-side: #f1f9fc;
+}
+
+.template-product {
+  --resume-ink: #16251f;
+  --resume-muted: #5d7469;
+  --resume-line: #cbded5;
+  --resume-line-soft: #e4f0ea;
+  --resume-accent: #2d8064;
+  --resume-accent-strong: #173f35;
+  --resume-accent-soft: #edf8f3;
+  --resume-accent-border: #c9e6da;
+  --resume-side: #f4fbf7;
+}
+
+.template-marketing {
+  --resume-ink: #2b211d;
+  --resume-muted: #80695c;
+  --resume-line: #dec8a8;
+  --resume-line-soft: #eadbc5;
+  --resume-accent: #a46f35;
+  --resume-accent-strong: #3b2c25;
+  --resume-accent-soft: #f7ead9;
+  --resume-accent-border: #dfc39a;
+  --resume-side: #fff8ed;
+  --resume-paper: #fffdf8;
+  background:
+    linear-gradient(180deg, rgba(164, 111, 53, 0.1), transparent 38mm),
+    var(--resume-paper);
+}
+
+.template-finance {
+  --resume-ink: #101d19;
+  --resume-muted: #53655f;
+  --resume-line: #c9d8d2;
+  --resume-line-soft: #e4ede9;
+  --resume-accent: #17614d;
+  --resume-accent-strong: #0b2f28;
+  --resume-accent-soft: #edf5f2;
+  --resume-accent-border: #c7ded6;
+  --resume-side: #f4f8f6;
+}
+
+.template-education {
+  --resume-ink: #1f2438;
+  --resume-muted: #666d86;
+  --resume-line: #d4d7e6;
+  --resume-line-soft: #e8e9f1;
+  --resume-accent: #4f5f9d;
+  --resume-accent-strong: #252b56;
+  --resume-accent-soft: #f0f2fb;
+  --resume-accent-border: #d0d5eb;
+  --resume-side: #f8f6ef;
+  --resume-paper: #fffef9;
+  --resume-font-display: var(--font-serif);
 }
 
 h1,
@@ -334,530 +242,331 @@ ul {
   margin: 0;
 }
 
+.resume-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16mm;
+  align-items: start;
+  padding-bottom: 10mm;
+  border-bottom: 1.4px solid var(--resume-line);
+}
+
+.template-base .resume-header {
+  border-bottom: 2px solid var(--resume-accent-strong);
+}
+
+.template-marketing .resume-header,
+.template-education .resume-header {
+  padding-bottom: 9mm;
+}
+
+.identity-block {
+  min-width: 0;
+}
+
+.template-rule {
+  width: 34mm;
+  height: 3px;
+  margin-bottom: 7mm;
+  background: var(--resume-accent);
+}
+
+.template-base .template-rule {
+  height: 1.5px;
+}
+
 h1 {
+  color: var(--resume-accent-strong);
+  font-family: var(--resume-font-display);
   font-size: 30px;
-  line-height: 1.05;
-  font-weight: 800;
+  font-weight: 850;
+  line-height: 1.04;
   letter-spacing: 0;
+}
+
+.template-marketing h1 {
+  font-size: 34px;
+}
+
+.template-education h1 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.target-role {
+  margin-top: 5px;
+  color: var(--resume-accent);
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.contact-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 9px;
+  color: var(--resume-muted);
+  font-size: 9.8px;
+  font-weight: 650;
+}
+
+.contact-line span:not(:last-child)::after {
+  content: '/';
+  margin-left: 7px;
+  color: var(--resume-line);
+}
+
+.photo {
+  width: 24mm;
+  height: 30mm;
+  object-fit: cover;
+  background: var(--resume-faint);
+  border: 1px solid var(--resume-line);
+  flex-shrink: 0;
+}
+
+.template-tech .photo,
+.template-product .photo,
+.template-finance .photo {
+  border-radius: 50%;
+  width: 24mm;
+  height: 24mm;
+  border: 2.5px solid var(--resume-accent-soft);
+  box-shadow: 0 0 0 1px var(--resume-accent);
+}
+
+.template-marketing .photo {
+  box-shadow: 5px 5px 0 var(--resume-accent-soft);
+}
+
+.resume-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54mm;
+  gap: 10mm;
+  padding-top: 9mm;
+}
+
+.template-base .resume-body {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.template-base .resume-side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8mm;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.template-marketing .resume-body,
+.template-product .resume-body {
+  grid-template-columns: minmax(0, 1.05fr) 58mm;
+}
+
+.resume-main,
+.resume-side {
+  min-width: 0;
+}
+
+.resume-side {
+  padding: 7mm 6mm;
+  background: var(--resume-side);
+  border: 1px solid var(--resume-line-soft);
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.template-education .resume-side {
+  border-style: double;
+}
+
+.resume-section,
+.resume-entry,
+.education-entry {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.resume-section + .resume-section {
+  margin-top: 7mm;
+}
+
+.side-section + .side-section {
+  margin-top: 6mm;
 }
 
 h2 {
   display: grid;
   grid-template-columns: max-content 1fr;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 7px;
-  color: var(--blue);
-  font-size: 14px;
-  font-weight: 800;
+  gap: 9px;
+  margin-bottom: 3.8mm;
+  color: var(--resume-accent-strong);
+  font-size: 12.2px;
+  font-weight: 850;
   line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+.template-marketing h2,
+.template-finance h2,
+.template-education h2 {
+  text-transform: uppercase;
 }
 
 h2::after {
   content: '';
   height: 1px;
-  background: var(--rule);
+  background: var(--resume-line);
 }
 
-ul {
-  padding-left: 14px;
-  break-inside: avoid;
+.resume-side h2 {
+  display: block;
+  margin-bottom: 3mm;
+  color: var(--resume-accent);
 }
 
-li {
-  margin-top: 2.5px;
-}
-
-.section,
-.entry,
-.impact-entry,
-.mk-section,
-.mk-entry,
-.mk-compact-entry,
-.mk-edu,
-.side-section,
-.side-item,
-.timeline-row {
-  break-inside: avoid;
-  page-break-inside: avoid;
-}
-
-.section {
-  margin-top: 13px;
-}
-
-.photo {
-  object-fit: cover;
-  flex-shrink: 0;
-  background: #f8fafc;
-}
-
-.contact-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.contact-line span:not(:last-child)::after {
-  content: '·';
-  margin-left: 8px;
-  color: #a7b0bb;
+.resume-side h2::after {
+  display: none;
 }
 
 .summary-text {
-  color: #2f3b4a;
-  font-size: 11.3px;
+  color: var(--resume-ink);
+  font-size: 11.2px;
   line-height: 1.72;
 }
 
-.entry {
-  margin-top: 8px;
+.resume-entry + .resume-entry {
+  margin-top: 5.5mm;
+  padding-top: 4.8mm;
+  border-top: 1px solid var(--resume-line-soft);
 }
 
 .entry-head {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  align-items: baseline;
+  gap: 12px;
+  align-items: flex-start;
 }
 
-.entry-head strong {
-  color: #172033;
-  font-size: 12.8px;
-}
-
-.entry-head span,
-.entry-subtitle,
-.date,
-.role {
-  color: var(--muted);
-}
-
-.entry-head span,
-.date {
-  font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
+.entry-head strong,
+.education-entry strong {
+  color: var(--resume-ink);
+  font-size: 12.3px;
+  font-weight: 850;
+  line-height: 1.25;
 }
 
 .entry-subtitle {
-  margin-top: 2px;
-  font-weight: 700;
+  margin-top: 1.5px;
+  color: var(--resume-accent);
+  font-size: 10.3px;
+  font-weight: 750;
 }
 
-.skill-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.skill-pills span {
-  padding: 3px 9px;
-  color: #173d62;
-  background: #f5f9fd;
-  border: 1px solid #cbdceb;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.timeline-row {
-  display: grid;
-  grid-template-columns: 135px 1fr;
-  gap: 12px;
-  margin-top: 7px;
-}
-
-.compact-row {
-  grid-template-columns: 135px 1.1fr 1.6fr;
-  align-items: baseline;
-}
-
-.row-details {
-  grid-column: 2 / -1;
-  margin-top: 4px;
-}
-
-/* Scheme 1: ATS single column */
-.template-ats {
-  padding-top: 15mm;
-}
-
-.ats-header,
-.long-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding-bottom: 13px;
-  border-bottom: 3px solid var(--blue);
-}
-
-.identity-row {
-  display: flex;
-  align-items: baseline;
-  gap: 20px;
-}
-
-.identity-row p {
-  color: var(--blue);
-  font-size: 15px;
+.entry-date {
+  color: var(--resume-muted);
+  font-size: 9.6px;
   font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
-.profile-copy {
-  min-width: 0;
-}
-
-.profile-copy .contact-line {
-  margin-top: 11px;
-}
-
-.photo-ats,
-.photo-long {
-  width: 25mm;
-  height: 32mm;
-  border: 1px solid #c9d6e4;
-}
-
-.template-ats li,
-.template-long li {
-  color: #354455;
-}
-
-/* Scheme 4: senior engineer impact */
-.template-senior {
-  padding: 0;
-  background: #f4f7fa;
-}
-
-.senior-hero {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 17mm 18mm 13mm;
-  color: #fff;
-  background: var(--blue-dark);
-  border-bottom: 5px solid #6aa6cf;
-}
-
-.senior-hero h1 {
-  color: #fff;
-}
-
-.senior-hero p {
-  margin-top: 5px;
-  color: #d9ebf7;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.senior-hero .contact-line {
-  margin-top: 11px;
-  color: #c7d7e3;
-}
-
-.senior-hero .contact-line span:not(:last-child)::after {
-  color: #89a8bd;
-}
-
-.photo-senior {
-  width: 24mm;
-  height: 24mm;
-  border-radius: 50%;
-  border: 3px solid #97c4e0;
-}
-
-.metric-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10mm;
-  padding: 10mm 18mm 8mm;
-}
-
-.metric-card {
-  padding: 8mm 7mm;
-  background: #fff;
-  border: 1px solid #d5dee8;
-  border-radius: 6px;
-}
-
-.metric-card strong {
-  display: block;
-  color: #145884;
-  font-size: 24px;
-  line-height: 1;
-}
-
-.metric-card span {
-  display: block;
-  margin-top: 4px;
-  color: #566272;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.senior-grid {
-  display: grid;
-  grid-template-columns: 1fr 62mm;
-  gap: 9mm;
-  padding: 6mm 18mm 16mm;
-}
-
-.template-senior .section {
-  margin-top: 0;
-  margin-bottom: 12px;
-}
-
-.impact-entry {
-  margin-top: 10px;
-}
-
-.impact-rule {
-  height: 5px;
-  margin-bottom: 9px;
-  background: #d3e2ed;
-  border-radius: 2px;
-}
-
-.stacked-head {
-  display: block;
-}
-
-.stacked-head span {
-  display: block;
-  margin-top: 2px;
-}
-
-.senior-side {
-  padding: 8mm 7mm;
-  background: #fff;
-  border: 1px solid #d5dee8;
-  border-radius: 7px;
-}
-
-.side-section {
-  margin-bottom: 14px;
-}
-
-.side-section h2 {
-  display: block;
-  margin-bottom: 7px;
-}
-
-.side-section h2::after {
-  display: none;
-}
-
-.side-section ul {
+ul {
+  margin-top: 2.5mm;
   padding-left: 13px;
 }
 
-.plain-list {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  color: #334155;
+li {
+  margin-top: 2.5px;
+  color: var(--resume-ink);
 }
 
-.side-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 8px;
-}
-
-.side-item small,
-.side-item span {
-  color: var(--muted);
-}
-
-/* Scheme 8: long resume, export-safe multipage */
-.template-long {
-  padding-top: 14mm;
-}
-
-.template-long .section {
-  margin-top: 12px;
-}
-
-.template-long .summary-text {
-  line-height: 1.66;
-}
-
-.inline-skills {
-  color: #2f3b4a;
-  line-height: 1.68;
-}
-
-.long-entry {
-  padding-top: 2px;
-  margin-top: 10px;
-}
-
-.long-entry + .long-entry {
-  padding-top: 9px;
-  border-top: 1px solid #e1e7ef;
-}
-
-.template-long .timeline-row p {
-  color: var(--muted);
-  font-weight: 700;
-}
-
-/* Marketing business template */
-.template-marketing {
-  color: #2b211d;
-  background: var(--business-paper);
-}
-
-.template-kicker {
-  margin: 0 0 6px;
-  color: var(--brass);
-  font-size: 8.6px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.target-role {
-  margin-top: 5px;
-  color: #74502d;
-  font-size: 12.5px;
-  font-weight: 700;
-}
-
-.mk-hero {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 14px;
-  border-bottom: 2px solid var(--business);
-}
-
-.mk-hero h1 {
-  color: var(--business);
-  font-size: 33px;
-}
-
-.mk-avatar {
-  width: 25mm;
-  height: 32mm;
-  border: 1px solid #b99561;
-  box-shadow: 6px 6px 0 #ead9bf;
-}
-
-.mk-contact {
+.skill-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  margin: 9px 0 14px;
-  padding: 6px 0;
-  color: #5f5750;
-  border-bottom: 1px solid #ead8bd;
-  font-size: 9.7px;
+  gap: 5px;
 }
 
-.mk-summary {
-  display: grid;
-  grid-template-columns: 104px 1fr;
-  gap: 15px;
-  margin-bottom: 14px;
-}
-
-.template-marketing h2 {
-  display: block;
-  color: var(--business);
-  font-size: 10.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.template-marketing h2::after {
-  display: none;
-}
-
-.mk-summary p {
-  color: #51413a;
-  font-size: 10.8px;
-}
-
-.mk-section {
-  margin-bottom: 13px;
-}
-
-.mk-section h2 {
-  margin-bottom: 7px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid #d9bf98;
-}
-
-.mk-entry {
-  margin-bottom: 9px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(217, 191, 152, 0.58);
-}
-
-.mk-entry-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.mk-entry-head strong,
-.mk-compact-entry strong,
-.mk-edu strong {
-  color: #2b211d;
-  font-size: 11.4px;
-}
-
-.mk-entry-head p,
-.mk-entry-head span,
-.mk-compact-entry span,
-.mk-edu span,
-.mk-edu small {
-  color: #7a6558;
-}
-
-.mk-entry-head span {
-  white-space: nowrap;
-  font-size: 9.4px;
-}
-
-.template-marketing li {
-  color: #51413a;
-}
-
-.mk-two-col {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 18px;
-  align-items: start;
-}
-
-.mk-compact-entry,
-.mk-edu {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 9px;
-}
-
-.mk-skills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.mk-skills span {
+.skill-list span {
   padding: 3px 7px;
-  color: var(--business);
-  background: #f5ead9;
-  border: 1px solid #d9bf98;
-  border-radius: 999px;
-  font-size: 9.3px;
+  color: var(--resume-accent-strong);
+  background: var(--resume-accent-soft);
+  border: 1px solid var(--resume-accent-border);
+  border-radius: 5px;
+  font-size: 9.4px;
+  font-weight: 760;
+}
+
+.template-base .skill-list span {
+  color: var(--resume-ink);
+  background: #fff;
+  border-color: var(--resume-line);
+  border-radius: 2px;
+}
+
+.education-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4mm;
+}
+
+.education-entry:first-of-type {
+  margin-top: 0;
+}
+
+.education-entry span,
+.education-entry small {
+  color: var(--resume-muted);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.template-base .section-summary {
+  padding: 4.5mm 5mm;
+  background: var(--resume-accent-soft);
+  border-left: 3px solid var(--resume-accent);
+}
+
+.template-tech .resume-entry {
+  position: relative;
+  padding-left: 4mm;
+}
+
+.template-tech .resume-entry::before {
+  content: '';
+  position: absolute;
+  top: 1mm;
+  left: 0;
+  width: 2px;
+  height: calc(100% - 1mm);
+  background: var(--resume-accent);
+}
+
+.template-product .resume-entry {
+  padding: 4mm;
+  background: #fff;
+  border: 1px solid var(--resume-line-soft);
+  border-radius: 6px;
+}
+
+.template-product .resume-entry + .resume-entry {
+  border-top: 1px solid var(--resume-line-soft);
+}
+
+.template-finance .resume-section {
+  border-left: 1.4px solid var(--resume-line);
+  padding-left: 4mm;
+}
+
+.template-finance .resume-side .resume-section {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.template-education .resume-entry + .resume-entry {
+  border-top-style: dotted;
 }
 </style>

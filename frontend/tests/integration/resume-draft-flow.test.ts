@@ -28,10 +28,13 @@ describe('resume draft flow', () => {
   })
 
   it('restores a local draft on page mount', async () => {
-    saveDraft(createTestResume({ name: '草稿候选人' }), window.localStorage, {
+    window.localStorage.setItem('yourResume:draft:v1', JSON.stringify({
+      version: 1,
+      savedAt: '2026-05-25T00:00:00.000Z',
+      resume: createTestResume({ name: '草稿候选人' }),
       template: 'long',
       templateLocked: true,
-    })
+    }))
 
     const wrapper = mount(HomeView, {
       attachTo: document.body,
@@ -43,7 +46,7 @@ describe('resume draft flow', () => {
     expect(wrapper.get('[data-testid="resume-draft-status"]').text()).toContain('已恢复本地草稿')
 
     const store = useResumeStore()
-    expect(store.template).toBe('long')
+    expect(store.template).toBe('base')
     expect(store.templateLocked).toBe(true)
 
     wrapper.unmount()
@@ -57,14 +60,14 @@ describe('resume draft flow', () => {
 
     const store = useResumeStore()
     store.setResume(createTestResume({ name: '待保存草稿' }))
-    store.setTemplate('senior')
+    store.setTemplate('tech')
     await nextTick()
     vi.advanceTimersByTime(300)
     await nextTick()
 
     expect(loadDraft(window.localStorage)?.name).toBe('待保存草稿')
     expect(loadDraftEnvelope(window.localStorage)).toMatchObject({
-      template: 'senior',
+      template: 'tech',
       templateLocked: true,
     })
     expect(wrapper.get('[data-testid="resume-draft-status"]').text()).toContain('草稿已自动保存')

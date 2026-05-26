@@ -48,21 +48,29 @@ describe('inferCareerTemplate', () => {
     }
   }
 
-  it('returns ats for IT-related resume', () => {
+  it('returns tech for IT-related resume', () => {
     const resume = makeResume({
       targetRole: '前端开发工程师',
       skills: ['Vue', 'React', 'TypeScript', 'Node.js'],
       experience: [{ company: 'X', title: '前端开发', duration: '2020-2023', details: ['开发Web应用'] }],
     })
-    expect(inferCareerTemplate(resume)).toBe('ats')
+    expect(inferCareerTemplate(resume)).toBe('tech')
   })
 
-  it('returns ats for backend resume', () => {
+  it('returns tech for backend resume', () => {
     const resume = makeResume({
       targetRole: 'Java开发工程师',
       skills: ['Java', 'Spring Boot', 'MySQL'],
     })
-    expect(inferCareerTemplate(resume)).toBe('ats')
+    expect(inferCareerTemplate(resume)).toBe('tech')
+  })
+
+  it('returns product for product resume', () => {
+    const resume = makeResume({
+      targetRole: '产品经理',
+      skills: ['用户研究', 'PRD', 'A/B测试', '增长策略'],
+    })
+    expect(inferCareerTemplate(resume)).toBe('product')
   })
 
   it('returns marketing for marketing resume', () => {
@@ -74,7 +82,23 @@ describe('inferCareerTemplate', () => {
     expect(inferCareerTemplate(resume)).toBe('marketing')
   })
 
-  it('returns ats for empty resume', () => {
-    expect(inferCareerTemplate(makeResume())).toBe('ats')
+  it('returns finance for finance resume', () => {
+    const resume = makeResume({
+      targetRole: '金融风控分析师',
+      skills: ['投研', '估值', '合规', 'CFA'],
+    })
+    expect(inferCareerTemplate(resume)).toBe('finance')
+  })
+
+  it('returns education for education resume', () => {
+    const resume = makeResume({
+      targetRole: '教研负责人',
+      skills: ['课程设计', '教学研究', '课题管理'],
+    })
+    expect(inferCareerTemplate(resume)).toBe('education')
+  })
+
+  it('returns base for empty resume', () => {
+    expect(inferCareerTemplate(makeResume())).toBe('base')
   })
 })

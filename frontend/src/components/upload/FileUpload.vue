@@ -116,15 +116,15 @@ function readFile(file: File) {
   flex-direction: column;
   justify-content: space-between;
   gap: 26px;
-  min-height: 260px;
-  padding: 24px;
+  min-height: 268px;
+  padding: 26px;
   color: var(--color-ink);
   background:
-    linear-gradient(#fff, #fff) padding-box,
-    linear-gradient(145deg, rgba(31, 77, 115, 0.42), rgba(167, 121, 61, 0.52)) border-box;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94)) padding-box,
+    linear-gradient(145deg, rgba(31, 77, 115, 0.5), rgba(45, 128, 100, 0.32), rgba(167, 121, 61, 0.48)) border-box;
   border: 1px solid transparent;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
+  border-radius: var(--radius-md);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.09);
   cursor: pointer;
   transition:
     transform 0.18s ease,
@@ -162,7 +162,7 @@ function readFile(file: File) {
   color: var(--color-brand);
   background: var(--color-panel-strong);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   flex-shrink: 0;
 }
 
@@ -173,7 +173,7 @@ function readFile(file: File) {
 
 .upload-title {
   color: var(--color-ink-strong);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 850;
   line-height: 1.18;
 }
@@ -196,7 +196,7 @@ function readFile(file: File) {
   color: var(--color-brand-2);
   background: #f5f8fb;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 800;
 }

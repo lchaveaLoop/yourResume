@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { CareerTemplate, Education, Experience, Project, ResumeData } from '../types/resume'
+import type { AnyCareerTemplate, CareerTemplate, Education, Experience, Project, ResumeData } from '../types/resume'
 import { inferCareerTemplate } from '../utils/career'
 import { normalizeResume, type ResumeInput } from '../utils/resume-normalizer'
+import { normalizeCareerTemplate } from '../utils/templates'
 
 export const useResumeStore = defineStore('resume', () => {
   const data = ref<ResumeData>(normalizeResume())
-  const template = ref<CareerTemplate>('ats')
+  const template = ref<CareerTemplate>('base')
   const templateLocked = ref(false)
 
   function setResume(resume: ResumeInput | null | undefined) {
@@ -17,11 +18,11 @@ export const useResumeStore = defineStore('resume', () => {
 
   function restoreResumeDraft(
     resume: ResumeInput | null | undefined,
-    restoredTemplate?: CareerTemplate,
+    restoredTemplate?: AnyCareerTemplate,
     restoredTemplateLocked = false,
   ) {
     data.value = normalizeResume(resume)
-    template.value = restoredTemplate ?? inferCareerTemplate(data.value)
+    template.value = normalizeCareerTemplate(restoredTemplate) ?? inferCareerTemplate(data.value)
     templateLocked.value = Boolean(restoredTemplate && restoredTemplateLocked)
   }
 
@@ -32,8 +33,8 @@ export const useResumeStore = defineStore('resume', () => {
     }
   }
 
-  function setTemplate(t: CareerTemplate) {
-    template.value = t
+  function setTemplate(t: AnyCareerTemplate) {
+    template.value = normalizeCareerTemplate(t) ?? 'base'
     templateLocked.value = true
   }
 
@@ -162,7 +163,7 @@ export const useResumeStore = defineStore('resume', () => {
 
   function reset() {
     data.value = normalizeResume()
-    template.value = 'ats'
+    template.value = 'base'
     templateLocked.value = false
   }
 

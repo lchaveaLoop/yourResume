@@ -22,15 +22,15 @@ test('editor has basic info fields after creating blank resume', async ({ page }
 test('template switching works', async ({ page }) => {
   await page.goto('/')
   await page.getByTestId('resume-create-blank').click()
-  await page.getByTestId('template-option-senior').click()
-  await expect(page.getByTestId('template-option-senior')).toHaveAttribute('aria-pressed', 'true')
+  await page.getByTestId('template-option-tech').click()
+  await expect(page.getByTestId('template-option-tech')).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('can switch to all templates', async ({ page }) => {
   await page.goto('/')
   await page.getByTestId('resume-create-blank').click()
 
-  for (const t of ['ats', 'senior', 'long', 'marketing']) {
+  for (const t of ['base', 'tech', 'product', 'marketing', 'finance', 'education']) {
     await page.getByTestId(`template-option-${t}`).click()
     await expect(page.getByTestId(`template-option-${t}`)).toHaveAttribute('aria-pressed', 'true')
   }

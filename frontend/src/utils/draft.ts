@@ -1,6 +1,7 @@
 import type { ResumeData } from '../types/resume'
 import type { CareerTemplate } from '../types/resume'
 import { normalizeResume, type ResumeInput } from './resume-normalizer'
+import { normalizeCareerTemplate } from './templates'
 
 export const RESUME_DRAFT_STORAGE_KEY = 'yourResume:draft:v1'
 export const RESUME_DRAFT_VERSION = 1
@@ -151,16 +152,7 @@ function normalizeDraftMetadata(value: unknown): ResumeDraftMetadata {
 }
 
 function extractCareerTemplate(value: unknown): CareerTemplate | undefined {
-  if (
-    value === 'ats' ||
-    value === 'senior' ||
-    value === 'long' ||
-    value === 'marketing'
-  ) {
-    return value
-  }
-
-  return undefined
+  return normalizeCareerTemplate(value)
 }
 
 function isRecord(value: unknown): value is UnknownRecord {

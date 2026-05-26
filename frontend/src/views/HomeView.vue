@@ -147,10 +147,12 @@ const DRAFT_SAVE_DELAY_MS = 300
 const A4_WIDTH_PX = 794
 
 const templateLabels: Record<CareerTemplate, string> = {
-  ats: 'ATS 单栏',
-  senior: '工程影响力',
-  long: '长履历',
+  base: '通用基础',
+  tech: '技术研发',
+  product: '产品增长',
   marketing: '商务出版',
+  finance: '金融专业',
+  education: '教育学术',
 }
 
 const zoomOptions: Array<{ label: string; value: PreviewZoomMode }> = [
@@ -397,11 +399,11 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  min-height: 76px;
-  padding: 14px 24px;
-  background: rgba(255, 255, 255, 0.88);
+  min-height: 72px;
+  padding: 12px 22px;
+  background: rgba(255, 255, 255, 0.9);
   border-bottom: 1px solid rgba(217, 224, 234, 0.92);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.06);
   backdrop-filter: blur(18px);
   flex-shrink: 0;
   z-index: 3;
@@ -421,7 +423,7 @@ onBeforeUnmount(() => {
   height: 40px;
   color: #fff;
   background: linear-gradient(145deg, var(--color-brand), #244f73);
-  border-radius: 12px;
+  border-radius: 8px;
   box-shadow: 0 12px 28px rgba(16, 38, 63, 0.22);
 }
 
@@ -470,7 +472,7 @@ onBeforeUnmount(() => {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(340px, 390px) minmax(0, 1fr);
+  grid-template-columns: minmax(360px, 420px) minmax(0, 1fr);
   height: 100%;
   min-height: 0;
 }
@@ -481,9 +483,11 @@ onBeforeUnmount(() => {
   gap: 18px;
   min-width: 0;
   min-height: 0;
-  padding: 22px;
+  padding: 24px;
   overflow-y: auto;
-  background: rgba(248, 250, 252, 0.92);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(247, 249, 252, 0.94)),
+    var(--color-panel);
   border-right: 1px solid var(--color-border);
 }
 
@@ -517,7 +521,7 @@ onBeforeUnmount(() => {
   color: var(--color-brand-2);
   background: #fff;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 750;
 }
@@ -539,9 +543,10 @@ onBeforeUnmount(() => {
   min-height: 0;
   overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(16, 38, 63, 0.06) 0 1px, transparent 1px),
-    linear-gradient(180deg, #e8edf3, #f2f4f7);
-  background-size: 34px 34px;
+    linear-gradient(90deg, rgba(16, 38, 63, 0.055) 0 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 140px),
+    linear-gradient(180deg, #dfe6ee, #f2f5f8);
+  background-size: 36px 36px, auto, auto;
 }
 
 .preview-sticky {
@@ -557,8 +562,8 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 58px;
-  padding: 10px 22px;
+  min-height: 56px;
+  padding: 9px 22px;
   color: var(--color-ink);
   background: rgba(255, 255, 255, 0.82);
   border-bottom: 1px solid rgba(199, 208, 220, 0.8);
@@ -610,7 +615,7 @@ onBeforeUnmount(() => {
   color: var(--color-brand);
   background: #fff;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: 750;
   white-space: nowrap;
@@ -626,7 +631,7 @@ onBeforeUnmount(() => {
   padding: 3px;
   background: var(--color-panel-strong);
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 
 .zoom-button {
@@ -636,7 +641,7 @@ onBeforeUnmount(() => {
   color: var(--color-muted);
   background: transparent;
   border: 0;
-  border-radius: 999px;
+  border-radius: calc(var(--radius-sm) - 2px);
   font-size: 11px;
   font-weight: 800;
   cursor: pointer;
@@ -667,7 +672,9 @@ onBeforeUnmount(() => {
   justify-content: center;
   min-width: max-content;
   min-height: 100%;
-  padding: 28px 32px 44px;
+  padding: 30px 36px 48px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.66), transparent 220px);
 }
 
 .preview-wrap {

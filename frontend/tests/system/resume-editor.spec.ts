@@ -19,7 +19,7 @@ test('edits basic fields and syncs the preview', async ({ page }) => {
 test('edits skills and experience details', async ({ page }) => {
   await page.goto('/')
   await page.getByTestId('resume-upload-input').setInputFiles(fixturePath('resumes', 'basic-resume.md'))
-  await page.getByTestId('template-option-long').click()
+  await page.getByTestId('template-option-base').click()
 
   await page.getByTestId('resume-editor-add-skill').click()
   await page.getByTestId('resume-editor-skill-4').fill('自动化测试')
